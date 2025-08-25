@@ -1,0 +1,117 @@
+APUNTES:
+
+	Tres formas de almacenamiento de datos:
+
+		1) Archivos DBF de AGIL
+		2) Tablas mysql de AGIL
+		3) Base de datos mysql APIBD propia del sistema
+
+POR HACER:
+
+
+	Establecer los archivos, sus rutas e implementar metodos de lectura de archivos dbf (Samuel)
+
+
+	Diseñado base de datos para (MYSQL) e Implementación:
+
+		-Almacenado de parametrizaciones:
+			-Empresa
+			-Bodega
+
+			-Descuento
+		
+			-Url del endpoint del API
+			-Llave de autorizacion del endpoint del API
+
+			-Hora del cargue diario full
+			-Frecuencia de cargue periodico
+			-# de intentos a realizar
+			-Tiempo entre intentos
+
+			Tabla Parametros:
+				-ID (AI)
+				-CODIGO (VARCHAR)
+				-DESCRIPCION (VARCHAR)
+				-VALOR (TEXT)
+				-FECHA CREACION (TIMESTAMP)
+				-VIGENTE (BOOLEAN)
+
+			1, 'EMPRESAS', "Estas son las empresas a utilizar", "001;002", '25/08/2025 17:13:27', False
+			2, 'EMPRESAS', "Estas son las empresas a utilizar", "001", '25/08/2025 16:13:27', True
+
+
+		-Bitacora de ejecuciones:
+			-ID (AI)
+			-Tipo de cargue (enum FULL o DELTA)
+			-Fecha (DATE)
+			-Hora (TIME)
+			-Origen del proceso (enum manual, automatico o reenvio)
+			-Cantidad de registros enviados (INTEGER)
+			-Tamaño del archivo (VARCHAR)
+			-Resultado del envio (VARCHAR)
+			-Descripcion del error (VARCHAR) (NULL)
+			-Parametros usados (VARCHAR)
+			-Fecha y hora de registro (TIMESTAMP)
+			-Satisfactorio (BOOLEAN)
+			-Ruta_archivo (VARCHAR)
+			-Archivo_borrado (BOOLEAN)
+
+		-Almacenado de reportes (Necesita su propia tabla):
+			-ID (AI)
+			-ID_EJECUCION (INTEGER) (REFERENCIA ID Bitacora)
+			-ID_INTERNO (VARCHAR)
+			-Cantidad (INTEGER)
+			-Precio_venta (INTEGER)
+			-Descuento (INTEGER)
+			-Fecha y hora de registro (TIMESTAMP)
+
+
+	Implementar metodos para manejo de parametros
+
+		Metodo para consumo de parametros que reciba como argumento el codigo y haga las validaciones necesarias, marque los errores necesarios, y devuelva un arreglo con todos los valores del parametro
+
+		Metodo para registrar un nuevo parametro
+
+
+	Implementar el modulo de consumo de API
+
+		-Validando la respuesta del API
+
+		-Registrando excepciones que puedan salir
+
+
+	Implementar bitacora
+
+		-Implementar metodos para la bitacora
+
+		-Integrar la bitacora al proceso
+
+		-Interfaz de la bitacora
+
+
+	Implementar ejecutable periodico
+
+		-Con validaciones de envios automaticos según lo parametrizado
+
+
+	Generar archivo csv a exportar
+
+		-Para el cargue DELTA incluir unicamente los productos con cambios en stock desde la ultima ejecución
+
+
+	Interfaz para ejecución manual del cargue con visualización de errores
+
+		-Si la ejecución es manual no debe realizar reenvio automatico
+
+
+	Interfaz para administracion de parametros
+
+		-Obtiene datos de AGIL pero se guardan las parametrizacion en la base de datos local
+
+	Interfaz para visualizar, descargar archivos generados y depuración de archivos generados por rango de fecha
+
+		-Haciendo uso de la tabla Bitacora
+
+	Despliegue
+
+	Implementacion de tarea periodica de lanzamiento de ejecutable en windwos
