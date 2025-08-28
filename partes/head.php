@@ -12,7 +12,7 @@
 <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 
 <!-- CSS -->
-<link rel="stylesheet" href="css/style.css">
+
 <link rel="stylesheet" href="css/colors/blue.css">
 <link rel="stylesheet" href="bootstrap-5.1.3-dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="css/noty.min.css">

@@ -5,8 +5,8 @@
 
         private function __construct() {
             $host = "localhost";
-            $username = "atfsasco_atfusr9";
-            $password = "1]qghP4!Zt7z";
+            $username = "root";
+            $password = "";
             $database = "agrogranada";
 
             $this->connection = new mysqli($host, $username, $password, $database);
