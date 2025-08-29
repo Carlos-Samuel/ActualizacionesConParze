@@ -13,7 +13,7 @@
       <nav class="menu open-current-submenu">
         <ul>
           <li class="menu-item">
-            <a href="parametrizacion.php">
+            <a href="parametros.php">
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>
@@ -21,7 +21,7 @@
             </a>
           </li>
           <li class="menu-item">
-            <a href="parametrizacion.php">
+            <a href="parametros.php">
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>

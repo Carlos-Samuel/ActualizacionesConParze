@@ -3,7 +3,7 @@
 <head>
     <?php include('partes/head.php'); ?>
     <style>
-        <?php include('styles/paramemetrizacion.css'); ?>
+        <?php include('styles/paramemetros.css'); ?>
     </style>
 </head>
 <body>
