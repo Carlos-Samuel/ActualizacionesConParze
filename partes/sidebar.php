@@ -5,7 +5,7 @@
         <button id="btn-collapse" class="btn btn-primary" style="margin: -0px;">
           ☰
         </button>
-        <p id = "titulo_sidebar">Reportes<p>        
+        <p id = "titulo_sidebar">Actualizacion<p>        
 
       </div>
     </div>
@@ -13,11 +13,11 @@
       <nav class="menu open-current-submenu">
         <ul>
           <li class="menu-item">
-            <a href="index.php">
+            <a href="parametrizacion.php">
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>
-              <span class="menu-title">Dahsboard</span>
+              <span class="menu-title">Parametrización</span>
             </a>
           </li>
           <li class="menu-item">
