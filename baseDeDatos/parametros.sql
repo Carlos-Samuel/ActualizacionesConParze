@@ -4,5 +4,6 @@ CREATE TABLE parametros (
     descripcion VARCHAR(255) COMMENT 'Descripcion del parametro a configurar',
     valor TEXT COMMENT 'Valor asignado al parametro',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de ultima modificacion del parametro',
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP  COMMENT 'Fecha de cambio de vigente a false',
     vigente BOOLEAN DEFAULT TRUE COMMENT 'TRUE = parametro vigente, FALSE = historico'
 )COMMENT='Tabla que almacena los parametros configurables del sistema';

@@ -16,6 +16,7 @@ try {
             parm.descripcion AS descripcion,
             parm.valor AS valor,
             parm.fecha_creacion AS fecha_de_creacion,
+            parm.fecha_modificacion AS fecha_de_modificacion,
             parm.vigente AS vigente
         FROM parametros parm
         WHERE parm.descripcion LIKE CONCAT('%', ?, '%')

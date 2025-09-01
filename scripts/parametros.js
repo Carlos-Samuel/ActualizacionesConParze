@@ -1,11 +1,11 @@
 
 // VENDEDOR
-$('#vendedor').select2({
-    placeholder: 'Seleccione uno o mas vendedores',
+$('#parametro').select2({
+    placeholder: 'Seleccione uno o mas parametros',
     width: '100%',
     multiple: true,
     ajax: {
-        url: 'controladores/select2/vendedores.php',
+        url: 'controladores/select2/parametroscod.php',
         type: 'POST',
         dataType: 'json',
         delay: 250,
@@ -28,12 +28,12 @@ $('#vendedor').select2({
 
 
 // EMPRESA
-$('#empresa').select2({
-    placeholder: 'Seleccione una o mas empresas',
+$('#despar').select2({
+    placeholder: 'Seleccione una o mas descripciones',
     width: '100%',
     multiple: true,
     ajax: {
-        url: 'controladores/select2/empresas.php',
+        url: 'controladores/select2/parametros.php',
         type: 'POST',
         dataType: 'json',
         delay: 250,
@@ -54,126 +54,17 @@ $('#empresa').select2({
     }
 });
 
-
 // MARCA
-$('#marca').select2({
-    placeholder: 'Seleccione una o mas marcas',
-    width: '100%',
-    multiple: true,
-    ajax: {
-        url: 'controladores/select2/marcas.php',
-        type: 'POST',
-        dataType: 'json',
-        delay: 250,
-        data: function (params) {
-            return {
-                search: params.term || '',
-                empresa_id: $('#empresa').val() || null
-            };
-        },
-        processResults: function (data) {
-            return {
-                results: data.map(item => ({
-                    id: item.id,
-                    text: `${item.codigo} - ${item.text}`
-                }))
-            };
-        },
-        cache: true
-    }
-});
-
 // PREFIJOS
-$('#prefijo').select2({
-    placeholder: 'Seleccione uno o mas prefijos',
-    width: '100%',
-    multiple: true,
-    ajax: {
-        url: 'controladores/select2/prefijos.php',
-        type: 'POST',
-        dataType: 'json',
-        delay: 250,
-        data: function (params) {
-            return {
-                search: params.term || '',
-                empresa_id: $('#empresa').val() || null
-            };
-        },
-        processResults: function (data) {
-            return {
-                results: data.map(item => ({
-                    id: item.id,
-                    text: `${item.codigo} - ${item.text}`
-                }))
-            };
-        },
-        cache: true
-    }
-});
-
 // GRUPO
-$('#grupo').select2({
-    placeholder: 'Seleccione uno o mas grupos',
-    width: '100%',
-    multiple: true,
-    ajax: {
-        url: 'controladores/select2/grupos.php',
-        type: 'POST',
-        dataType: 'json',
-        delay: 250,
-        data: function (params) {
-            return {
-                search: params.term || '',
-                empresa_id: $('#empresa').val() || null
-            };
-        },
-        processResults: function (data) {
-            return {
-                results: data.map(item => ({
-                    id: item.id,
-                    text: `${item.codigo} - ${item.text}`
-                }))
-            };
-        },
-        cache: true
-    }
-});
 
-// SUBGRUPO (dependiente del grupo)
-$('#subgrupo').select2({
-    placeholder: 'Seleccione uno o mas subgrupos',
-    width: '100%',
-    multiple: true,
-    ajax: {
-        url: 'controladores/select2/subgrupos.php',
-        type: 'POST',
-        dataType: 'json',
-        delay: 250,
-        data: function (params) {
-            return {
-                search: params.term || '',
-                grupo_id: $('#grupo').val() || null
-            };
-        },
-        processResults: function (data) {
-            return {
-                results: data.map(item => ({
-                    id: item.id,
-                    text: `${item.codigo} - ${item.text}`
-                }))
-            };
-        },
-        cache: true
-    }
-});
+//$('#empresa').on('change', function () {
+//    $('#grupo').val(null).trigger('change');
+//});
 
-$('#empresa').on('change', function () {
-    $('#grupo').val(null).trigger('change');
-});
-
-$('#grupo').on('change', function () {
-    $('#subgrupo').val(null).trigger('change');
-});
+//$('#grupo').on('change', function () {
+//    $('#subgrupo').val(null).trigger('change');
+//});
 
 let tablaInicializada = false;
 
@@ -206,24 +97,11 @@ function cargarTabla(datosFiltro) {
             data: datosFiltro
         },
         columns: [
-            { data: 'fecha_factura' },
-            { data: 'prefijo' },
-            { data: 'prefijo_nombre' },
-            { data: 'numero_factura' },
-            { data: 'codigo_vendedor' },
-            { data: 'nombre_vendedor' },
-            { data: 'tercero_nit' },
-            { data: 'tercero_nombre' },
-            { data: 'codigo_producto' },
-            { data: 'nombre_producto' },
-            { data: 'cantidad' },
-            { data: 'valor_unitario' },
-            { data: 'subtotal' },
-            { data: 'grupo' },
-            { data: 'subgrupo' },
-            { data: 'codigo_marca' },
-            { data: 'nombre_marca' },
-            { data: 'centro_costos' }
+            { data: 'Código Parametro' },
+            { data: 'Descripción' },
+            { data: 'Valor' },
+            { data: 'fecha de creación' },
+            { data: 'Vigente' }
         ],
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
@@ -245,16 +123,11 @@ function cargarTabla(datosFiltro) {
                     const getMultipleTexts = (selector) => {
                         return $(selector).select2('data').map(item => item.text.trim()).join(', ') || 'Todos';
                     };
-
+//  aqui voy RAPC0829
                     const info = [
-                        `Fecha Inicial: ${$('#fechaInicio').val() || ''}`,
-                        `Fecha Final: ${$('#fechaFin').val() || ''}`,
-                        `Vendedor(es): ${getMultipleTexts('#vendedor')}`,
-                        `Empresa(s): ${getMultipleTexts('#empresa')}`,
-                        `Marca(s): ${getMultipleTexts('#marca')}`,
-                        `Prefijos(s): ${getMultipleTexts('#prefijo')}`,
-                        `Grupo(s): ${getMultipleTexts('#grupo')}`,
-                        `Subgrupo(s): ${getMultipleTexts('#subgrupo')}`
+                        `Prametro(s): ${getMultipleTexts('#parametro')}`,
+                        `Descripción(s): ${getMultipleTexts('#despar')}`,
+                        `Vigencia: ${getMultipleTexts('#videncia')}`
                     ];
 
                     // Desplaza filas existentes
@@ -333,14 +206,9 @@ function cargarTabla(datosFiltro) {
 $('#formFechas').on('submit', function(e) {
     e.preventDefault();
     cargarTabla({
-        fechaInicio: $('#fechaInicio').val(),
-        fechaFin: $('#fechaFin').val(),
-        vendedor: $('#vendedor').val(),
-        grupo: $('#grupo').val(),
-        subgrupo: $('#subgrupo').val(),
-        empresa: $('#empresa').val(),
-        marca : $('#marca').val(),
-        prefijo: $('#prefijo').val()
+        prametro: $('#parametro').val(),
+        descripción: $('#despar').val(),
+        vigencia: $('#vigencia').val()
     });
 
 });

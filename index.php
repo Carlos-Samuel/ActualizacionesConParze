@@ -23,6 +23,6 @@
             include('partes/foot.php')
         ?>  
 
-        <script src="scripts/index.js"></script>
+  <!-- <script src="scripts/index.js"></script> */-->
     </body>
 </html>

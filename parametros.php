@@ -20,25 +20,18 @@
                     <form id="formFechas">
                         <div class="row mb-3">
                             <div class="col-md-3">
-                                <label for="empresa" class="form-label">Empresa</label>
-                                <select class="form-select" id="empresa" name="empresa[]" multiple required></select>
+                                <label for="parametro" class="form-label">Parametro</label>
+                                <select class="form-select" id="parametro" name="parametro[]" multiple required></select>
                             </div>
                             <div class="col-md-3">
-                                <label for="marca" class="form-label">Marca</label>
-                                <select class="form-select" id="marca" name="marca[]" multiple></select>
+                                <label for="despar" class="form-label">Descripción</label>
+                                <select class="form-select" id="despar" name="despar[]" multiple></select>
                             </div>
                             <div class="col-md-3">
-                                <label for="prefijo" class="form-label">Prefijo</label>
-                                <select class="form-select" id="prefijo" name="prefijo[]" multiple></select>
+                                <label for="vigente" class="form-label">Vigente</label>
+                                <select class="form-select" id="vigente" name="vigente[]" multiple></select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="grupo" class="form-label">Grupo</label>
-                                <select class="form-select" id="grupo" name="grupo[]" multiple></select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="subgrupo" class="form-label">Subgrupo</label>
-                                <select class="form-select" id="subgrupo" name="subgrupo[]" multiple></select>
-                            </div>
+                            
                         </div>
                         <button type="submit" class="btn btn-primary">Procesar</button>
                     </form>
@@ -50,24 +43,11 @@
                     <table id="tablaInforme" class="table table-bordered table-striped" style="width: 100%;">
                         <thead>
                             <tr>
-                                <th>Fecha Factura</th>
-                                <th>Prefijo</th>
-                                <th>Prefijo</th>
-                                <th>#Fac</th>
-                                <th>#Ven</th>
-                                <th>Vendedor</th>
-                                <th>Ter Nit</th>
-                                <th>Tercero</th>
-                                <th>Cod Prod</th>
-                                <th>Producto</th>
-                                <th>Cant</th>
-                                <th>Vlr Uni</th>
-                                <th>Subtotal</th>
-                                <th>Grupo</th>
-                                <th>SubGrupo</th>
-                                <th>Codigo Marca</th>
-                                <th>Marca</th>
-                                <th>Centro de costos</th>
+                                <th>Parametro</th>
+                                <th>Descripción</th>
+                                <th>Valor</th>
+                                <th>fecha de creación</th>
+                                <th>Videncia</th>
                             </tr>
                         </thead>
                     </table>
@@ -77,7 +57,7 @@
     </div>
 
     <?php include('partes/foot.php'); ?>  
-    <script src="scripts/parametrizacion.js"></script>
+    <script src="scripts/parametros.js"></script>
 
 </body>
 </html>

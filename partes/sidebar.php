@@ -21,7 +21,7 @@
             </a>
           </li>
           <li class="menu-item">
-            <a href="parametros.php">
+            <a href="procesos.php">
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>
