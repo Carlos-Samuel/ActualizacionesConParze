@@ -21,19 +21,19 @@
             </a>
           </li>
           <li class="menu-item">
-            <a href="procesos.php">
+            <a href="parametrizacion.php">
+              <span class="menu-icon">
+                <i class="fa fa-bookmark"></i>
+              </span>
+              <span class="menu-title">Interfaz Parametrización</span>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="#">
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>
               <span class="menu-title">Procesos</span>
-            </a>
-          </li>
-          <li class="menu-item">
-            <a href="informeVentas.php">
-              <span class="menu-icon">
-                <i class="fa fa-bookmark"></i>
-              </span>
-              <span class="menu-title">Informe Ventas</span>
             </a>
           </li>
           <hr>
