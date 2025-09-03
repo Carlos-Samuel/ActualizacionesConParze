@@ -48,7 +48,7 @@ try {
                 b.grpnom   AS grpnom,
                 e.emprcod  AS emprcod,
                 e.emprnom  AS emprnom
-            FROM insubgrupos s
+            FROM insubgrupo s
             INNER JOIN ingrupos g ON g.grpid = s.subid
             WHERE s.empid IS NOT NULL
               AND g.grpcod IN ($placeholders)

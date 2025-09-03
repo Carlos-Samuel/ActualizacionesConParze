@@ -25,7 +25,7 @@
                     <!-- Grupos de productos seleccionadas (tabla con select Sí/No) -->
                     <div class="mb-2">
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="form-label fw-semibold m-0">Grupos de productos disponiblers para descuento</label>
+                            <label class="form-label fw-semibold m-0">Grupos disponibles para descuento</label>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm table-striped align-middle" id="tabla-grupos">
@@ -57,7 +57,7 @@
                             <thead class="table-light">
                                 <tr>
                                 <th style="width:240px;">Grupo</th>
-                                <th style="width:120px;">SubGrp</th>
+                                <th style="width:120px;">Código</th>
                                 <th>Subgrupo</th>
                                 <th style="width:160px;">Con Descuento</th>
                                 </tr>
