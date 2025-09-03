@@ -9,7 +9,7 @@ try {
     $connParametrizacion = ConnectionParametrizacion::getInstance()->getConnection();
 
     // 1) Obtener el parámetro EMPRESAS_SELECCIONADAS (emprcod separados por ;)
-    $codigoParam = 'EMPRESAS_SELECCIONADAS';
+    $codigoParam = 'GRUPOS_SELECCIONADOS';
     $stmtParam = $connParametrizacion->prepare("SELECT valor 
                                 FROM parametros 
                                 WHERE codigo = ? AND vigente = TRUE 
@@ -19,49 +19,49 @@ try {
     $stmtParam->execute();
     $resParam = $stmtParam->get_result();
 
-    $empresasCod = [];
+    $gruposCod = [];
     if ($resParam && $row = $resParam->fetch_assoc()) {
         $valor = trim((string)$row['valor']);
         if ($valor !== '') {
-            $empresasCod = array_values(array_filter(array_map('trim', explode(';', $valor)), function($v) {
+            $gruposCod = array_values(array_filter(array_map('trim', explode(';', $valor)), function($v) {
                 return $v !== '';
             }));
         }
     }
 
-    // Si no hay empresas parametrizadas, devolver lista vacía (status 200)
+    // Si no hay grupos parametrizadas, devolver lista vacía (status 200)
     if (count($empresasCod) === 0) {
         http_response_code(200);
         echo json_encode([
             'statusCode' => 200,
-            'mensaje'    => 'No hay empresas parametrizadas vigentes para filtrar grupos.',
-            'bodegas'    => []
+            'mensaje'    => 'No hay grupos parametrizadas vigentes para filtrar grupos.',
+            'subgrupos'  => []
         ]);
         exit;
     }
 
     // 2) Armar consulta con IN dinámico sobre e.emprcod (los códigos parametrizados)
     // Nota: el JOIN se mantiene por empid/emprid.
-    $placeholders = implode(',', array_fill(0, count($empresasCod), '?'));
+    $placeholders = implode(',', array_fill(0, count($gruposCod), '?'));
     $sql = "SELECT 
                 b.grpcod   AS grpcod,
                 b.grpnom   AS grpnom,
                 e.emprcod  AS emprcod,
                 e.emprnom  AS emprnom
-            FROM ingrupos b
-            INNER JOIN tbl_empresa e ON e.emprid = b.empid
-            WHERE b.empid IS NOT NULL
-              AND e.emprcod IN ($placeholders)
-            ORDER BY e.emprnom ASC, b.bodnom ASC";
+            FROM insubgrupos s
+            INNER JOIN ingrupos g ON g.grpid = s.subid
+            WHERE s.empid IS NOT NULL
+              AND g.grpcod IN ($placeholders)
+            ORDER BY g.grpnom ASC, s.subnom ASC";
 
     $stmt = $con->prepare($sql);
 
     // bind_param dinámico (todos como string)
-    $types = str_repeat('s', count($empresasCod));
+    $types = str_repeat('s', count($gruposCod));
     $params = [];
     $params[] = & $types;
-    foreach ($empresasCod as $k => $v) {
-        $params[] = & $empresasCod[$k];
+    foreach ($gruposCod as $k => $v) {
+        $params[] = & $gruposCod[$k];
     }
     call_user_func_array([$stmt, 'bind_param'], $params);
 
@@ -69,14 +69,14 @@ try {
     $res = $stmt->get_result();
 
     //$bodegas = [];
-    $grupos = [];
+    $subgrupos = [];
     if ($res && $res->num_rows > 0) {
         while ($row = $res->fetch_assoc()) {
             $grupos[] = [
+                'subcod'  => $row['subcod'],
+                'subnom'  => $row['subnom'],
                 'grpcod'  => $row['grpcod'],
                 'grpnom'  => $row['grpnom'],
-                'emprcod' => $row['emprcod'],
-                'emprnom' => $row['emprnom']
             ];
         }
     }
@@ -84,14 +84,14 @@ try {
     http_response_code(200);
     echo json_encode([
         'statusCode' => 200,
-        'mensaje'    => 'Gruposs listados correctamente.',
-        'grupos'    => $grupos
+        'mensaje'    => 'Subgrupos listados correctamente.',
+        'subgrupos'    => $subgrupos
     ]);
 
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         'statusCode' => 500,
-        'mensaje'    => 'Error al listar grupo: ' . $e->getMessage()
+        'mensaje'    => 'Error al listar sub grupos: ' . $e->getMessage()
     ]);
 }

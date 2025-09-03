@@ -32,7 +32,7 @@ $(document).ready(function () {
     $tablaSubGruposBody = $('#tabla-subgrupos tbody');
 
     cargarGruposYSeleccion();
-    cargarBodegasYSeleccion();
+    cargarSubGruposYSeleccion();
 
     // Guardar
     $('#btn-guardar-empresas').on('click', function () {
@@ -260,13 +260,13 @@ function escapeHtml(s) {
 }
 
 
-function cargarBodegasYSeleccion() {
+function cargarSubGruposYSeleccion() {
   // 1) Obtener selección vigente de parámetro
   $.ajax({
     url: ENDPOINT_GET,
     method: 'POST',
     dataType: 'json',
-    data: { codigo: PARAM_BODEGAS }
+    data: { codigo: PARAM_SUBGRUPOS }
   })
   .done(function (respParam) {
     let seleccionSet = new Set();
@@ -275,84 +275,84 @@ function cargarBodegasYSeleccion() {
       bodegasSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
     } else if (respParam.statusCode === 404) {
       seleccionSet = new Set();
-      bodegasSeleccionInicialNorm = '';
+      subgruposSeleccionInicialNorm = '';
     } else if (respParam.statusCode === 409) {
-      error('Existen múltiples parámetros vigentes para BODEGAS_SELECCIONADAS. Corrige la inconsistencia.');
+      error('Existen múltiples parámetros vigentes para SUBRUPOS_SELECCIONADAS. Corrige la inconsistencia.');
       return;
     } else if (respParam.statusCode && respParam.statusCode !== 200) {
-      error(respParam.mensaje || 'No se pudo cargar la selección de bodegas.');
+      error(respParam.mensaje || 'No se pudo cargar la selección de subrupos.');
       return;
     }
 
     // 2) Listar bodegas asignadas a empresa
     $.ajax({
-      url: ENDPOINT_LISTAR_BODEGAS,
+      url: ENDPOINT_LISTAR_SUBGRUPOS,
       method: 'POST',
       dataType: 'json'
     })
-    .done(function (respBod) {
+    .done(function (respSub) {
       if (respBod.statusCode === 200 && Array.isArray(respBod.bodegas)) {
-        bodegasCache = respBod.bodegas; // [{bodcod, bodnom, emprcod, emprnom}]
-        renderTablaBodegas(bodegasCache, seleccionSet);
-        $('#btn-guardar-bodegas').prop('disabled', true);
+        subgruposCache = respSub.subgrupos; // [{subcod, subnom, grpcod, grpnom}]
+        renderTablaSubGrupos(subGruposCache, seleccionSet);
+        $('#btn-guardar-subgrupos').prop('disabled', true);
       } else {
-        error(respBod.mensaje || 'No se pudieron cargar las bodegas.');
+        error(respBod.mensaje || 'No se pudieron cargar los subgrupos.');
       }
     })
     .fail(function () {
-      error('Fallo al comunicarse con el servidor al listar bodegas.');
+      error('Fallo al comunicarse con el servidor al listar subrupos.');
     });
 
   })
   .fail(function () {
-    error('Fallo al obtener el parámetro BODEGAS_SELECCIONADAS.');
+    error('Fallo al obtener el parámetro SUBGRUPOS_SELECCIONADOS.');
   });
 }
 
-function renderTablaBodegas(bodegas, seleccionSet) {
-  $tablaBodegasBody.empty();
+function renderTablaSubGrupos(subgrupos, seleccionSet) {
+  $tablaSubGruposBody.empty();
 
   // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
   // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
 
-  bodegas.forEach(b => {
-    const selected = seleccionSet.has(String(b.bodcod));
+  subrupos.forEach(b => {
+    const selected = seleccionSet.has(String(b.subcod));
     const row = $(`
-      <tr data-bod="${escapeHtml(String(b.bodcod))}">
-        <td>${escapeHtml(String(b.emprnom))}</td>
-        <td class="text-monospace">${escapeHtml(String(b.bodcod))}</td>
-        <td>${escapeHtml(String(b.bodnom))}</td>
+      <tr data-bod="${escapeHtml(String(b.subcod))}">
+        <td>${escapeHtml(String(b.grpnom))}</td>
+        <td class="text-monospace">${escapeHtml(String(b.subcod))}</td>
+        <td>${escapeHtml(String(b.subnom))}</td>
         <td>
-          <select class="form-select form-select-sm bod-sel">
+          <select class="form-select form-select-sm sub-sel">
             <option value="NO">No</option>
             <option value="SI">Sí</option>
           </select>
         </td>
       </tr>
     `);
-    row.find('select.bod-sel').val(selected ? 'SI' : 'NO');
+    row.find('select.sub-sel').val(selected ? 'SI' : 'NO');
 
-    row.find('select.bod-sel').on('change', function () {
-      const norm = normalizeSeleccion(getSeleccionBodegasActualComoSet());
+    row.find('select.sub-sel').on('change', function () {
+      const norm = normalizeSeleccion(getSeleccionSubGruposActualComoSet());
       $('#btn-guardar-bodegas').prop('disabled', norm === bodegasSeleccionInicialNorm);
     });
 
-    $tablaBodegasBody.append(row);
+    $tablaSubGruposBody.append(row);
   });
 }
 
-function getSeleccionBodegasActualComoSet() {
+function getSeleccionSubGruposActualComoSet() {
   const set = new Set();
-  $tablaBodegasBody.find('tr').each(function () {
-    const cod = $(this).data('bod');
-    const val = $(this).find('select.bod-sel').val();
+  $tablaSubGruposBody.find('tr').each(function () {
+    const cod = $(this).data('sub');
+    const val = $(this).find('select.sun-sel').val();
     if (val === 'SI') set.add(String(cod));
   });
   return set;
 }
 
-function guardarBodegasSeleccionadas() {
-  const seleccionSet = getSeleccionBodegasActualComoSet();
+function guardarSubGruposSeleccionadas() {
+  const seleccionSet = getSeleccionSubgruposActualComoSet();
   const valor = Array.from(seleccionSet).sort().join(';');
 
   $.ajax({
@@ -360,22 +360,22 @@ function guardarBodegasSeleccionadas() {
     method: 'POST',
     dataType: 'json',
     data: {
-      codigo: PARAM_BODEGAS,
-      descripcion: 'Bodegas habilitadas (BodCod separados por ;)',
+      codigo: PARAM_SUBGRUPOS,
+      descripcion: 'Subgrupos con descuentos (BodCod:descuento(0-99) separados por ;)',
       valor: valor
     }
   })
   .done(function (resp) {
     if (resp.statusCode === 200) {
-      ok('Selección de bodegas guardada correctamente.');
-      bodegasSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
-      $('#btn-guardar-bodegas').prop('disabled', true);
+      ok('Descuentos de subBodegas guardadas correctamente.');
+      subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
+      $('#btn-guardar-subgrupos').prop('disabled', true);
     } else {
-      error(resp.mensaje || 'No se pudo guardar la selección de bodegas.');
+      error(resp.mensaje || 'No se pudo guardar los subrgrupos con descuento.');
     }
   })
   .fail(function () {
-    error('Fallo al comunicarse con el servidor al guardar la selección de bodegas.');
+    error('Fallo al comunicarse con el servidor al guardar los subrgupos con descuento.');
   });
 }
 

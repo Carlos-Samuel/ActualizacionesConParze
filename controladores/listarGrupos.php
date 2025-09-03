@@ -68,7 +68,6 @@ try {
     $stmt->execute();
     $res = $stmt->get_result();
 
-    //$bodegas = [];
     $grupos = [];
     if ($res && $res->num_rows > 0) {
         while ($row = $res->fetch_assoc()) {
@@ -84,7 +83,7 @@ try {
     http_response_code(200);
     echo json_encode([
         'statusCode' => 200,
-        'mensaje'    => 'Gruposs listados correctamente.',
+        'mensaje'    => 'Grupos listados correctamente.',
         'grupos'    => $grupos
     ]);
 
@@ -92,6 +91,6 @@ try {
     http_response_code(500);
     echo json_encode([
         'statusCode' => 500,
-        'mensaje'    => 'Error al listar grupo: ' . $e->getMessage()
+        'mensaje'    => 'Error al listar grupos: ' . $e->getMessage()
     ]);
 }
