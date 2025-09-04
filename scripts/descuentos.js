@@ -27,17 +27,17 @@ let SubGruposConDescuentoInicialNorm = '';
 let $tablaSubGruposBody = null;
 
 $(document).ready(function () {
-  //  PARAMS.forEach(setupParam);
+    PARAMS.forEach(setupParam);
     $tablaGruposBody = $('#tabla-grupos tbody');
     $tablaSubGruposBody = $('#tabla-subgrupos tbody');
 
-    cargarGruposYSeleccion();
+    //cargarGruposYSeleccion();
     cargarSubGruposYSeleccion();
 
     // Guardar
-    $('#btn-guardar-grupos').on('click', function () {
-        guardarGruposSeleccionadas();
-    });
+  // $('#btn-guardar-grupos').on('click', function () {
+  //      guardarGruposSeleccionadas();
+  //  });
 
     $('#btn-guardar-subgrupos').on('click', function () {
         guardarSubGruposSeleccionadas();
@@ -171,7 +171,7 @@ function cargarGruposYSeleccion() {
 
 
 
-function renderTablagrupos(grupos, seleccionSet) {
+function renderTablaGrupos(grupos, seleccionSet) {
   $tablaGruposBody.empty();
 
   grupos.forEach(e => {
@@ -269,12 +269,13 @@ function cargarSubGruposYSeleccion() {
     data: { codigo: PARAM_SUBGRUPOS }
   })
   .done(function (respParam) {
-    let seleccionSet = new Set();
+    let seleccionSetS = new Set();
+    
     if (respParam.statusCode === 200 && respParam.parametro && respParam.parametro.valor) {
-      seleccionSet = parseSeleccionToSet(respParam.parametro.valor);
-      subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
+      seleccionSetS = parseSeleccionToSet(respParam.parametro.valor);
+      subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSetS);
     } else if (respParam.statusCode === 404) {
-      seleccionSet = new Set();
+      seleccionSetS = new Set();
       subgruposSeleccionInicialNorm = '';
     } else if (respParam.statusCode === 409) {
       error('Existen múltiples parámetros vigentes para SUBRUPOS_SELECCIONADAS. Corrige la inconsistencia.');
@@ -289,18 +290,22 @@ function cargarSubGruposYSeleccion() {
       url: ENDPOINT_LISTAR_SUBGRUPOS,
       method: 'POST',
       dataType: 'json'
+      
     })
     .done(function (respSub) {
-      if (respSub.statusCode === 200 && Array.isArray(respSub.subrupos)) {
+      // borrar console
+      console.log('Respuesta del listado de subgrupos:', respSub);
+      if (respSub.statusCode === 200 && Array.isArray(respSub.subgrupos)) {
+
         subgruposCache = respSub.subgrupos; // [{subcod, subnom, grpcod, grpnom}]
-        renderTablaSubGrupos(subGruposCache, seleccionSet);
+        renderTablaSubGrupos(subgruposCache, seleccionSetS);
         $('#btn-guardar-subgrupos').prop('disabled', true);
       } else {
         error(respSub.mensaje || 'No se pudieron cargar los subgrupos.');
       }
     })
     .fail(function () {
-      error('Fallo al comunicarse con el servidor al listar subrupos.');
+      error('Fallo al comunicarse con el servidor al listar subgrupos.');
     });
 
   })
@@ -309,28 +314,27 @@ function cargarSubGruposYSeleccion() {
   });
 }
 
-function renderTablaSubGrupos(subgrupos, seleccionSet) {
+function renderTablaSubGrupos(subgrupos, seleccionSetS) {
   $tablaSubGruposBody.empty();
 
   // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
   // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
 
+   console.log('Renderizando tabla de subgrupos con selección:', subgrupos);
   subgrupos.forEach(b => {
-    const selected = seleccionSet.has(String(b.subcod));
+    const selected = seleccionSetS.has(String(b.subcod));
     const row = $(`
       <tr data-bod="${escapeHtml(String(b.subcod))}">
         <td>${escapeHtml(String(b.grpnom))}</td>
         <td class="text-monospace">${escapeHtml(String(b.subcod))}</td>
         <td>${escapeHtml(String(b.subnom))}</td>
         <td>
-          <select class="form-select form-select-sm sub-sel">
-            <option value="NO">No</option>
-            <option value="SI">Sí</option>
-          </select>
+          <input type="number" class="form-control form-control-sm sub-sel" min="0" max="100" placeholder="0–100">  
         </td>
       </tr>
     `);
-    row.find('select.sub-sel').val(selected ? 'SI' : 'NO');
+    row.find('input.sub-sel').val(selected ? 100 : 0);
+    
 
     row.find('select.sub-sel').on('change', function () {
       const norm = normalizeSeleccion(getSeleccionSubGruposActualComoSet());
@@ -345,15 +349,15 @@ function getSeleccionSubGruposActualComoSet() {
   const set = new Set();
   $tablaSubGruposBody.find('tr').each(function () {
     const cod = $(this).data('sub');
-    const val = $(this).find('select.sun-sel').val();
+    const val = $(this).find('select.sub-sel').val();
     if (val === 'SI') set.add(String(cod));
   });
   return set;
 }
 
 function guardarSubGruposSeleccionadas() {
-  const seleccionSet = getSeleccionSubgruposActualComoSet();
-  const valor = Array.from(seleccionSet).sort().join(';');
+  const seleccionSetS = getSeleccionSubgruposActualComoSet();
+  const valor = Array.from(seleccionSetS).sort().join(';');
 
   $.ajax({
     url: ENDPOINT_SAVE,
@@ -367,8 +371,8 @@ function guardarSubGruposSeleccionadas() {
   })
   .done(function (resp) {
     if (resp.statusCode === 200) {
-      ok('Descuentos de subBodegas guardadas correctamente.');
-      subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
+      ok('Descuentos de subGrupos guardadas correctamente.');
+      subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSetS);
       $('#btn-guardar-subgrupos').prop('disabled', true);
     } else {
       error(resp.mensaje || 'No se pudo guardar los subrgrupos con descuento.');

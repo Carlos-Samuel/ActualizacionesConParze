@@ -9,7 +9,7 @@ try {
     $connParametrizacion = ConnectionParametrizacion::getInstance()->getConnection();
 
     // 1) Obtener el parámetro EMPRESAS_SELECCIONADAS (emprcod separados por ;)
-    $codigoParam = 'GRUPOS_SELECCIONADOS';
+    $codigoParam = 'EMPRESAS_SELECCIONADAS';
     $stmtParam = $connParametrizacion->prepare("SELECT valor 
                                 FROM parametros 
                                 WHERE codigo = ? AND vigente = TRUE 
@@ -19,64 +19,70 @@ try {
     $stmtParam->execute();
     $resParam = $stmtParam->get_result();
 
-    $gruposCod = [];
+    $empresasCod = [];
     if ($resParam && $row = $resParam->fetch_assoc()) {
         $valor = trim((string)$row['valor']);
         if ($valor !== '') {
-            $gruposCod = array_values(array_filter(array_map('trim', explode(';', $valor)), function($v) {
+            $empresasCod = array_values(array_filter(array_map('trim', explode(';', $valor)), function($v) {
                 return $v !== '';
             }));
         }
     }
-
-    // Si no hay grupos parametrizadas, devolver lista vacía (status 200)
-    if (count($gruposCod) === 0) {
+    
+    // Si no hay empresas parametrizadas, devolver lista vacía (status 200)
+    if (count($empresasCod) === 0) {
         http_response_code(200);
         echo json_encode([
             'statusCode' => 200,
-            'mensaje'    => 'No hay grupos parametrizadas vigentes para filtrar grupos.',
-            'subgrupos'  => []
+            'mensaje'    => 'No hay empresas parametrizadas vigentes.',
+            'subgrupos'    => []
         ]);
         exit;
     }
 
-    // 2) Armar consulta con IN dinámico sobre e.emprcod (los códigos parametrizados)
+
+
+    // 2) Armar consulta con IN dinámico sobre e.grpcod (los códigos parametrizados)
     // Nota: el JOIN se mantiene por empid/emprid.
-    $placeholders = implode(',', array_fill(0, count($gruposCod), '?'));
+    $placeholders = implode(',', array_fill(0, count($empresasCod), '?'));
     $sql = "SELECT 
-                b.grpcod   AS grpcod,
-                b.grpnom   AS grpnom,
-                e.emprcod  AS emprcod,
-                e.emprnom  AS emprnom
+                e.emprnom  AS empnom,
+                g.grpnom   AS grpnom,
+                s.subnom   AS subnom,
+                e.emprcod  AS empcod,
+                g.grpcod   AS grpcod,
+                s.subid    AS subid
             FROM insubgrupo s
-            INNER JOIN ingrupos g ON g.grpid = s.subid
+            INNER JOIN ingrupos g ON g.grpid = s.grpid
+            INNER JOIN tbl_empresa e ON e.emprid = s.empid
             WHERE s.empid IS NOT NULL
-              AND g.grpcod IN ($placeholders)
-            ORDER BY g.grpnom ASC, s.subnom ASC";
+              AND e.emprcod IN ($placeholders)
+            ORDER BY e.emprnom ASC, g.grpnom ASC, s.subnom ASC";
 
     $stmt = $con->prepare($sql);
 
     // bind_param dinámico (todos como string)
-    $types = str_repeat('s', count($gruposCod));
+    $types = str_repeat('s', count($empresasCod));
     $params = [];
     $params[] = & $types;
-    foreach ($gruposCod as $k => $v) {
-        $params[] = & $gruposCod[$k];
+    foreach ($empresasCod as $k => $v) {
+        $params[] = & $empresasCod[$k];
     }
     call_user_func_array([$stmt, 'bind_param'], $params);
 
     $stmt->execute();
     $res = $stmt->get_result();
 
-    //$bodegas = [];
     $subgrupos = [];
     if ($res && $res->num_rows > 0) {
         while ($row = $res->fetch_assoc()) {
-            $grupos[] = [
-                'subcod'  => $row['subcod'],
+            $subgrupos[] = [
+                'empnom'  => $row['empnom'],
+                'grpnom'  => $row['frpnom'],
                 'subnom'  => $row['subnom'],
+                'empcod'  => $row['empcod'],
                 'grpcod'  => $row['grpcod'],
-                'grpnom'  => $row['grpnom'],
+                'subid'   => $row['subid']
             ];
         }
     }
@@ -85,7 +91,7 @@ try {
     echo json_encode([
         'statusCode' => 200,
         'mensaje'    => 'Subgrupos listados correctamente.',
-        'subgrupos'    => $subgrupos
+        'subgrupos'  => $subgrupos
     ]);
 
 } catch (Exception $e) {

@@ -24,27 +24,7 @@
                     <!-- Reintentos automáticos -->
                     <!-- Grupos de productos seleccionadas (tabla con select Sí/No) -->
                     <div class="mb-2">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="form-label fw-semibold m-0">Grupos disponibles para descuento</label>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped align-middle" id="tabla-grupos">
-                                <thead class="table-light">
-                                    <tr>
-                                    <th style="width:120px;">Código</th>
-                                    <th>Grupo</th>
-                                    <th style="width:160px;">Seleccionado</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="text-end mt-2">
-                            <button id="btn-guardar-grupos" class="btn btn-primary" disabled>Guardar selección de grupos</button>
-                        </div>
-                    </div>
+                        
                     <br>
                     <!-- Sub Grupos seleccionados (tabla con select Sí/No) -->
                     <div class="mb-2">
@@ -56,10 +36,10 @@
                             <table class="table table-sm table-striped align-middle" id="tabla-subgrupos">
                             <thead class="table-light">
                                 <tr>
-                                <th style="width:240px;">Grupo</th>
-                                <th style="width:120px;">Código</th>
-                                <th>Subgrupo</th>
-                                <th style="width:160px;">Con Descuento</th>
+                                <th style="width:180px;">Empresa</th>   
+                                <th style="width:180px;">Grupo</th>
+                                 <th>Subgrupo</th>
+                                <th style="width:160px;">Con Descuento (0-100)</th>
                                 </tr>
                             </thead>
                             <tbody>

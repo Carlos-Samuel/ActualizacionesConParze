@@ -52,7 +52,7 @@ try {
             INNER JOIN tbl_empresa e ON e.emprid = g.empid
             WHERE g.empid IS NOT NULL
               AND e.emprcod IN ($placeholders)
-            ORDER BY g.grpnom ASC";
+            ORDER BY e.emprnom ASC, g.grpnom ASC";
 
     $stmt = $con->prepare($sql);
 
