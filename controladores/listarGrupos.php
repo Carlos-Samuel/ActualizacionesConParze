@@ -35,7 +35,7 @@ try {
         echo json_encode([
             'statusCode' => 200,
             'mensaje'    => 'No hay empresas parametrizadas vigentes para filtrar grupos.',
-            'bodegas'    => []
+            'grupos'    => []
         ]);
         exit;
     }
@@ -44,15 +44,15 @@ try {
     // Nota: el JOIN se mantiene por empid/emprid.
     $placeholders = implode(',', array_fill(0, count($empresasCod), '?'));
     $sql = "SELECT 
-                b.grpcod   AS grpcod,
-                b.grpnom   AS grpnom,
+                g.grpcod   AS grpcod,
+                g.grpnom   AS grpnom,
                 e.emprcod  AS emprcod,
                 e.emprnom  AS emprnom
-            FROM ingrupos b
-            INNER JOIN tbl_empresa e ON e.emprid = b.empid
-            WHERE b.empid IS NOT NULL
+            FROM ingrupos g
+            INNER JOIN tbl_empresa e ON e.emprid = g.empid
+            WHERE g.empid IS NOT NULL
               AND e.emprcod IN ($placeholders)
-            ORDER BY b.bodnom ASC";
+            ORDER BY g.grpnom ASC";
 
     $stmt = $con->prepare($sql);
 

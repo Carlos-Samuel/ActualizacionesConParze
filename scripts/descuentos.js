@@ -35,12 +35,12 @@ $(document).ready(function () {
     cargarSubGruposYSeleccion();
 
     // Guardar
-    $('#btn-guardar-empresas').on('click', function () {
-        guardarEmpresasSeleccionadas();
+    $('#btn-guardar-grupos').on('click', function () {
+        guardarGruposSeleccionadas();
     });
 
-    $('#btn-guardar-bodegas').on('click', function () {
-        guardarBodegasSeleccionadas();
+    $('#btn-guardar-subgrupos').on('click', function () {
+        guardarSubGruposSeleccionadas();
     });
 
 });
@@ -150,13 +150,13 @@ function cargarGruposYSeleccion() {
       method: 'POST',
       dataType: 'json'
     })
-    .done(function (respEmp) {
-      if (respEmp.statusCode === 200 && Array.isArray(respEmp.empresas)) {
-        gruposCache = respEmp.grupos ; // [{grpcod, grpnom, emprcod, emprnom}]
+    .done(function (respGrp) {
+      if (respGrp.statusCode === 200 && Array.isArray(respGrp.grupos)) {
+        gruposCache = respGrp.grupos ; // [{grpcod, grpnom, emprcod, emprnom}]
         renderTablaGrupos(gruposCache, seleccionSet);
         $('#btn-guardar-grupos').prop('disabled', true);
       } else {
-        error(respEmp.mensaje || 'No se pudieron cargar las grupos.');
+        error(respGrp.mensaje || 'No se pudieron cargar las grupos.');
       }
     })
     .fail(function () {
@@ -272,7 +272,7 @@ function cargarSubGruposYSeleccion() {
     let seleccionSet = new Set();
     if (respParam.statusCode === 200 && respParam.parametro && respParam.parametro.valor) {
       seleccionSet = parseSeleccionToSet(respParam.parametro.valor);
-      bodegasSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
+      subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
     } else if (respParam.statusCode === 404) {
       seleccionSet = new Set();
       subgruposSeleccionInicialNorm = '';
@@ -291,12 +291,12 @@ function cargarSubGruposYSeleccion() {
       dataType: 'json'
     })
     .done(function (respSub) {
-      if (respBod.statusCode === 200 && Array.isArray(respBod.bodegas)) {
+      if (respSub.statusCode === 200 && Array.isArray(respSub.subrupos)) {
         subgruposCache = respSub.subgrupos; // [{subcod, subnom, grpcod, grpnom}]
         renderTablaSubGrupos(subGruposCache, seleccionSet);
         $('#btn-guardar-subgrupos').prop('disabled', true);
       } else {
-        error(respBod.mensaje || 'No se pudieron cargar los subgrupos.');
+        error(respSub.mensaje || 'No se pudieron cargar los subgrupos.');
       }
     })
     .fail(function () {
@@ -315,7 +315,7 @@ function renderTablaSubGrupos(subgrupos, seleccionSet) {
   // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
   // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
 
-  subrupos.forEach(b => {
+  subgrupos.forEach(b => {
     const selected = seleccionSet.has(String(b.subcod));
     const row = $(`
       <tr data-bod="${escapeHtml(String(b.subcod))}">
@@ -334,7 +334,7 @@ function renderTablaSubGrupos(subgrupos, seleccionSet) {
 
     row.find('select.sub-sel').on('change', function () {
       const norm = normalizeSeleccion(getSeleccionSubGruposActualComoSet());
-      $('#btn-guardar-bodegas').prop('disabled', norm === bodegasSeleccionInicialNorm);
+      $('#btn-guardar-subgrupos').prop('disabled', norm === subgruposSeleccionInicialNorm);
     });
 
     $tablaSubGruposBody.append(row);

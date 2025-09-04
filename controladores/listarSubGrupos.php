@@ -30,7 +30,7 @@ try {
     }
 
     // Si no hay grupos parametrizadas, devolver lista vacía (status 200)
-    if (count($empresasCod) === 0) {
+    if (count($gruposCod) === 0) {
         http_response_code(200);
         echo json_encode([
             'statusCode' => 200,
