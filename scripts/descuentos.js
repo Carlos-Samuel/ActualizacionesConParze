@@ -251,8 +251,7 @@ function parseSeleccionToSet(valorStr) {
   );
 }
 function normalizeSeleccion(set) {
-  //Borrar console
-  console.log(Array)
+  
   return Array.from(set).sort().join(';'); // normaliza para comparar cambios
 }
 function escapeHtml(s) {
@@ -322,13 +321,13 @@ function renderTablaSubGrupos(subgrupos, seleccionSetS) {
   // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
   // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
 
-   console.log('Renderizando tabla de subgrupos con selección:', subgrupos);
+   console.log('Renderizando tabla de subgrupos con selección:', subgrupos, seleccionSetS);
   subgrupos.forEach(b => {
-    const selected = seleccionSetS.has(String(b.subcod));
+    const selected = seleccionSetS.has(String(b.subid));
     const row = $(`
       <tr data-bod="${escapeHtml(String(b.subcod))}">
-        <td>${escapeHtml(String(b.grpnom))}</td>
-        <td class="text-monospace">${escapeHtml(String(b.subcod))}</td>
+        <td>${escapeHtml(String(b.empnom))}</td>
+        <td class="text-monospace">${escapeHtml(String(b.grpnom))}</td>
         <td>${escapeHtml(String(b.subnom))}</td>
         <td>
           <input type="number" class="form-control form-control-sm sub-sel" min="0" max="100" placeholder="0–100">  
@@ -340,6 +339,8 @@ function renderTablaSubGrupos(subgrupos, seleccionSetS) {
 
     row.find('select.sub-sel').on('change', function () {
       const norm = normalizeSeleccion(getSeleccionSubGruposActualComoSet());
+      // borra console
+      console.log (norm)
       $('#btn-guardar-subgrupos').prop('disabled', norm === subgruposSeleccionInicialNorm);
     });
 

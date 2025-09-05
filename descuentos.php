@@ -36,10 +36,10 @@
                             <table class="table table-sm table-striped align-middle" id="tabla-subgrupos">
                             <thead class="table-light">
                                 <tr>
-                                <th style="width:180px;">Empresa</th>   
-                                <th style="width:180px;">Grupo</th>
+                                <th style="width:280px;">Empresa</th>   
+                                <th style="width:320px;">Grupo</th>
                                  <th>Subgrupo</th>
-                                <th style="width:160px;">Con Descuento (0-100)</th>
+                                <th style="width:160px;">Descuento (0-100)</th>
                                 </tr>
                             </thead>
                             <tbody>
