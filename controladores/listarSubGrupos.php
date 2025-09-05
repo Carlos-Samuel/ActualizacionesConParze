@@ -56,7 +56,8 @@ try {
             INNER JOIN ingrupos g ON g.grpid = s.grpid
             INNER JOIN tbl_empresa e ON e.emprid = s.empid
             WHERE s.empid IS NOT NULL
-              AND e.emprcod IN ($placeholders)
+             AND s.grpid IS NOT NULL
+             AND e.emprcod IN ($placeholders)
             ORDER BY e.emprnom ASC, g.grpnom ASC, s.subnom ASC";
 
     $stmt = $con->prepare($sql);
@@ -73,12 +74,12 @@ try {
     $stmt->execute();
     $res = $stmt->get_result();
 
-    $subgrupos = [];
+      $subgrupos = [];
     if ($res && $res->num_rows > 0) {
         while ($row = $res->fetch_assoc()) {
             $subgrupos[] = [
                 'empnom'  => $row['empnom'],
-                'grpnom'  => $row['frpnom'],
+                'grpnom'  => $row['grpnom'],
                 'subnom'  => $row['subnom'],
                 'empcod'  => $row['empcod'],
                 'grpcod'  => $row['grpcod'],

@@ -6,7 +6,7 @@ const ENDPOINT_SAVE = 'controladores/guardarParametro.php';
 const PARAM_EMPRESAS = 'EMPRESAS_SELECCIONADAS';
 const ENDPOINT_LISTAR_EMPRESAS = 'controladores/listarEmpresas.php';
 const PARAM_GRUPOS = 'GRUPOS_SELECCIONADOS';
-const ENDPOINT_LISTAR_GRUPOS = 'controladores/listarGrupos.php';
+//const ENDPOINT_LISTAR_GRUPOS = 'controladores/listarGrupos.php';
 const PARAM_SUBGRUPOS = 'SUBGRUPOS_CON_DESCUENTO';
 const ENDPOINT_LISTAR_SUBGRUPOS = 'controladores/listarSubGrupos.php';
 
@@ -251,6 +251,8 @@ function parseSeleccionToSet(valorStr) {
   );
 }
 function normalizeSeleccion(set) {
+  //Borrar console
+  console.log(Array)
   return Array.from(set).sort().join(';'); // normaliza para comparar cambios
 }
 function escapeHtml(s) {
