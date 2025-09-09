@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="text-end mt-2">
-                            <button id="btn-guardar-bodegas" class="btn btn-primary" disabled>Guardar descuento de subgrupo</button>
+                            <button id="btn-guardar-descuentos" class="btn btn-primary" disabled>Guardar descuento de subgrupo</button>
                         </div>
                     </div>
 

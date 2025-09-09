@@ -21,6 +21,7 @@ let $tablaEmpresasBody = null;
 //let $tablaBodegasBody = null;
 let gruposCache = []; 
 let gruposSeleccionInicialNorm = '';
+let subGruposSeleccionInicialNorm = '';
 let $tablaGruposBody = null;
 let subGruposCache = []; 
 let SubGruposConDescuentoInicialNorm = '';
@@ -28,7 +29,7 @@ let $tablaSubGruposBody = null;
 
 $(document).ready(function () {
     PARAMS.forEach(setupParam);
-    $tablaGruposBody = $('#tabla-grupos tbody');
+   // $tablaGruposBody = $('#tabla-grupos tbody');
     $tablaSubGruposBody = $('#tabla-subgrupos tbody');
 
     //cargarGruposYSeleccion();
@@ -39,7 +40,7 @@ $(document).ready(function () {
   //      guardarGruposSeleccionadas();
   //  });
 
-    $('#btn-guardar-subgrupos').on('click', function () {
+    $('#btn-guardar-descuentos').on('click', function () {
         guardarSubGruposSeleccionadas();
     });
 
@@ -92,6 +93,8 @@ function setupParam(def) {
     if (msg) { warn(msg); return; }
 
     const toSave = def.saveTransform(raw);
+    console.log(`Guardando ${def.code} = ${toSave}`);
+    $btn.prop('disabled', true); // prevenir múltiples clicks
 
     $.ajax({
       url: ENDPOINT_SAVE,
@@ -117,7 +120,6 @@ function setupParam(def) {
     });
   });
 }
-
 
 function cargarGruposYSeleccion() {
   // 1) Obtener parámetro vigente (lista emprcod separados por ;)
@@ -168,8 +170,6 @@ function cargarGruposYSeleccion() {
     error('Fallo al obtener el parámetro GRUPOS_SELECCIONADAS.');
   });
 }
-
-
 
 function renderTablaGrupos(grupos, seleccionSet) {
   $tablaGruposBody.empty();
@@ -271,13 +271,13 @@ function cargarSubGruposYSeleccion() {
   })
   .done(function (respParam) {
     let seleccionSetS = new Set();
-    
+    console.log('Respuesta del parámetro de subgrupos:', respParam);
     if (respParam.statusCode === 200 && respParam.parametro && respParam.parametro.valor) {
       seleccionSetS = parseSeleccionToSet(respParam.parametro.valor);
       subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSetS);
     } else if (respParam.statusCode === 404) {
       seleccionSetS = new Set();
-      subgruposSeleccionInicialNorm = '';
+      subGruposSeleccionInicialNorm = '';
     } else if (respParam.statusCode === 409) {
       error('Existen múltiples parámetros vigentes para SUBRUPOS_SELECCIONADAS. Corrige la inconsistencia.');
       return;
@@ -300,7 +300,7 @@ function cargarSubGruposYSeleccion() {
 
         subgruposCache = respSub.subgrupos; // [{subcod, subnom, grpcod, grpnom}]
         renderTablaSubGrupos(subgruposCache, seleccionSetS);
-        $('#btn-guardar-subgrupos').prop('disabled', true);
+        $('#btn-guardar-descuentos').prop('disabled', true);
       } else {
         error(respSub.mensaje || 'No se pudieron cargar los subgrupos.');
       }
@@ -321,27 +321,35 @@ function renderTablaSubGrupos(subgrupos, seleccionSetS) {
   // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
   // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
 
-   console.log('Renderizando tabla de subgrupos con selección:', subgrupos, seleccionSetS);
-  subgrupos.forEach(b => {
-    const selected = seleccionSetS.has(String(b.subid));
+   console.log('Renderizando tabla de subgrupos:', subgrupos);
+   console.log('Renderizando tabla de selección:', seleccionSetS);
+  subgrupos.forEach(s => {
+    let descuento = 0 ;
+    const subgrupo = String(s.subid);
+    const resultado = Array.from(seleccionSetS).find(item => item.startsWith(subgrupo + ":"));
+
+    if (resultado){
+        descuento = resultado.split(':')[1];
+    }
+
     const row = $(`
-      <tr data-bod="${escapeHtml(String(b.subcod))}">
-        <td>${escapeHtml(String(b.empnom))}</td>
-        <td class="text-monospace">${escapeHtml(String(b.grpnom))}</td>
-        <td>${escapeHtml(String(b.subnom))}</td>
+      <tr data-subid="${escapeHtml(String(s.subid))}">
+        <td>${escapeHtml(String(s.empnom))}</td>
+        <td class="text-monospace">${escapeHtml(String(s.grpnom))}</td>
+        <td>${escapeHtml(String(s.subnom))}</td>
         <td>
-          <input type="number" class="form-control form-control-sm sub-sel" min="0" max="100" placeholder="0–100">  
+          <input type="number" class="form-control form-control-sm sub-des" 
+             min="0" max="100" placeholder="0–100" value="${escapeHtml(String(descuento))}">  
         </td>
       </tr>
     `);
-    row.find('input.sub-sel').val(selected ? 100 : 0);
+    //row.find('input.sub-des').val(selected ? 100 : 0);
+    row.find('input.sub-des').val()
     
-
-    row.find('select.sub-sel').on('change', function () {
+    row.find('input.sub-des').on('change', function () {
       const norm = normalizeSeleccion(getSeleccionSubGruposActualComoSet());
-      // borra console
-      console.log (norm)
-      $('#btn-guardar-subgrupos').prop('disabled', norm === subgruposSeleccionInicialNorm);
+      
+      $('#btn-guardar-descuentos').prop('disabled', norm === subGruposSeleccionInicialNorm);
     });
 
     $tablaSubGruposBody.append(row);
@@ -349,17 +357,21 @@ function renderTablaSubGrupos(subgrupos, seleccionSetS) {
 }
 
 function getSeleccionSubGruposActualComoSet() {
+   
   const set = new Set();
   $tablaSubGruposBody.find('tr').each(function () {
-    const cod = $(this).data('sub');
-    const val = $(this).find('select.sub-sel').val();
-    if (val === 'SI') set.add(String(cod));
+    const cod = $(this).data('subid');
+    const val = $(this).find('input.sub-des').val();
+     
+    //aqui se debe cambiar la intruccion ser.add String(cod+':'String.valueOf(val)) RAPC  //`${cod}:${val}`
+    if ( val > 0 && val <= 100) set.add(`${cod}:${val}`);
   });
+   
   return set;
 }
 
 function guardarSubGruposSeleccionadas() {
-  const seleccionSetS = getSeleccionSubgruposActualComoSet();
+  const seleccionSetS = getSeleccionSubGruposActualComoSet();
   const valor = Array.from(seleccionSetS).sort().join(';');
 
   $.ajax({
@@ -368,7 +380,7 @@ function guardarSubGruposSeleccionadas() {
     dataType: 'json',
     data: {
       codigo: PARAM_SUBGRUPOS,
-      descripcion: 'Subgrupos con descuentos (BodCod:descuento(0-99) separados por ;)',
+      descripcion: 'Subgrupos con descuentos (subdes:descuento(0-99) separados por ;)',
       valor: valor
     }
   })
@@ -376,7 +388,7 @@ function guardarSubGruposSeleccionadas() {
     if (resp.statusCode === 200) {
       ok('Descuentos de subGrupos guardadas correctamente.');
       subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSetS);
-      $('#btn-guardar-subgrupos').prop('disabled', true);
+      $('#btn-guardar-descuentos').prop('disabled', true);
     } else {
       error(resp.mensaje || 'No se pudo guardar los subrgrupos con descuento.');
     }
