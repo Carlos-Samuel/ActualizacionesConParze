@@ -8,16 +8,16 @@ const ENDPOINT_SAVE = 'controladores/registraBitacora.php';
 // Definición de parámetros y reglas  SE QUITAN TODOS 
 const PARAMS = [];
 
-let empresasCache = [];
+let id_bitacora_aux
 let seleccionInicialNorm = '';
 let $tablaEmpresasBody = null;
 
 setupBitacora();
 
-$(document).ready(function () {
-  PARAMS.forEach(setupBitacora);
+//$(document).ready(function () {
+//  PARAMS.forEach(setupBitacora);
     // setupBitacora();
-});
+//});
 
 function setupBitacora(def) {
   
@@ -46,11 +46,14 @@ function setupBitacora(def) {
           }
   })
   .done(function (resp) {
-    if (resp.statusCode === 200 && resp.parametro) {
-      const val = def.loadTransform(resp.parametro.valor);
-      $input.val(val);
-      initial = val;
-      $btn.prop('disabled', true);
+    console.log(resp);
+    if (resp.statusCode === 200 && resp.id_bitacora) {
+      //const val = def.loadTransform(resp.parametro.valor);
+      //$input.val(val);
+      //initial = val;
+      id_bitacora_aux = resp.id_bitacora;
+      console.log("id_bitacora_aux: "+id_bitacora_aux);
+       
     } else if (resp.statusCode === 404) {
       // no vigente encontrado: queda vacío
       

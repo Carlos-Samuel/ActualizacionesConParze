@@ -40,14 +40,13 @@ try {
 
     $con->commit();
 
-
-    http_response_code(200);
+        http_response_code(200);
     echo json_encode([
         'statusCode' => 200,
+        'id_bitacora' => $id_bitacora,
         'mensaje' => 'Bitacora Registrada correctamente.'
         
     ]);
-    return $id_bitacora;
 
 } catch (Exception $e) {
     if (isset($con) && $con->errno === 0) {
