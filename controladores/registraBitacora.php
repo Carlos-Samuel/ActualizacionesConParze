@@ -10,8 +10,8 @@ try {
     $fecha_ejecucion = $_POST['fecha_ejecucion'] ?? null;
     $hora_ejecucion = $_POST['hora_ejecucion'] ?? null;     
     $origen_del_proceso = $_POST['origen_del_proceso'] ?? null;
-    $cantidad_registros_enviados = $_POST['cantidad_registros_enviados'] ?? null;
-    $tamaño_del_archivo = $_POST['tamaño_del_archivo'] ?? null;
+    $cantidad_registros_enviados = $_POST['origen_del_proceso'] ?? null;
+    $tamaño_del_archivo = $_POST['origen_del_proceso'] ?? null;
     $resultado_del_envio = $_POST['resultado_del_envio'] ?? null;
     $descripcion_error = $_POST['descripcion_error'] ?? null;    
     $parametros_usados = $_POST['parametros_usados'] ?? null;    
