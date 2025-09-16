@@ -9,8 +9,9 @@ CREATE TABLE bitacora (
         resultado_del_envio ENUM('Exitoso', 'Fallido') COMMENT 'resultado del envio exitoso o fallido',
         descripcion_error VARCHAR(255) COMMENT 'Descripcion del error en caso de fallo',
         parametros_usados VARCHAR(1024) COMMENT 'Parametros usados en el proceso',
-		Fecha_hora_de_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora en que se registro la ejecucion', 
+		fecha_hora_de_inicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora en que inicia la ejecucion', 
+		fecha_hora_de_fin TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora de finalización de la ejecucion', 
         satisfactorio BOOLEAN COMMENT 'TRUE = ejecucion satisfactoria, FALSE = ejecucion con errores',
 		ruta_archivo VARCHAR(255) COMMENT 'Ruta donde se almacena el archivo generado',
-		Archivo_borrado BOOLEAN comment 'TRUE = archivo borrado despues de enviarse, FALSE = archivo no borrado'
+		archivo_borrado BOOLEAN comment 'TRUE = archivo borrado despues de enviarse, FALSE = archivo no borrado'
 )COMMENT 'Tabla que almacena la bitacora de ejecuciones del sistema';
