@@ -31,15 +31,15 @@
                             <table class="table table-sm table-striped align-middle" id="tabla-bitacoras">
                             <thead class="table-light">
                                 <tr>
-                                <th style="width:100px;">ID</th>   
-                                <th style="width:100px;">Tipo</th>
-                                 <th>Fecha</th>
-                                <th style="width:160px;">Hora</th>
-                                <th style="width:200px;">Origen</th>
-                                <th style="width:200px;">No. Reg.</th>
+                                <th>ID</th>   
+                                <th>Tipo</th>
+                                <th style="width:160px;">Fecha</th>
+                                <th>Hora</th>
+                                <th style="width:100px;">Origen</th>
+                                <th>No.Reg.</th>
                                 <th style="width:200px;">Tamaño</th>
                                 <th style="width:200px;">Resultado</th>
-                                <th style="width:300px;">Error</th>
+                                <th style="width:300px;">Mensaje de Error </th>
                                 <th >Parametros</th>
                                 <th style="width:200px;">Time Inicio</th>
                                 <th style="width:200px;">Time Fin</th>

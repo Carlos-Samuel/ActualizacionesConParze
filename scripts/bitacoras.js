@@ -111,7 +111,7 @@ function renderTablaBitacoras(bitacoras) {
 
     const row = $(`
       <tr data-bitacora="${escapeHtml(String(s.id_bitacora))}">
-        <td>${escapeHtml(String(s.id_bitacora))}</td>
+        <td class="text-monospace">${escapeHtml(String(s.id_bitacora))}</td>
         <td>${escapeHtml(String(s.tipo_de_cargue))}</td>
         <td class="text-monospace">${escapeHtml(String(s.fecha_ejecucion))}</td>
         <td>${escapeHtml(String(s.hora_ejecucion))}</td>
@@ -123,12 +123,15 @@ function renderTablaBitacoras(bitacoras) {
         <td>${escapeHtml(String(s.parametros_usados))}</td>
         <td>${escapeHtml(String(s.fecha_hora_de_inicio))}</td>
         <td>${escapeHtml(String(s.fecha_hora_de_fin))}</td>
-        <td>${escapeHtml(String(s.satisfactorio))}</td>
+         
+        <td>${(s.satisfactorio == 1) ? 'Sí' : 'No'}</td>
         <td>${escapeHtml(String(s.ruta_archivo))}</td>
-        <td>${escapeHtml(String(s.archivo_borrado))}</td>
+        
+        <td>${(s.archivo_borrado == 1) ? 'Sí' : 'No'}</td>
       </tr>
     `);
     //row.find('input.sub-des').val(selected ? 100 : 0);
+    //<td>${(s.archivo_borrado == 1) ? 'Sí' : 'No'}</td>
     
 
     $tablaBitacorasBody.append(row);
