@@ -37,6 +37,7 @@ try {
                 ruta_archivo, 
                 archivo_borrado 
     FROM bitacora 
+    
     ORDER BY fecha_hora_de_inicio DESC");
     //WHERE (fecha_ejecución >= ? AND fecha_ejecion <= ?)
     $stmt = $con->prepare($sql);
@@ -72,8 +73,8 @@ try {
         http_response_code(200);
     echo json_encode([
         'statusCode' => 200,
-        'mensaje' => 'Bitacoras listadas correctamente.'
-        
+        'mensaje' => 'Bitacoras listadas correctamente.',
+        'bitacoras'  => $bitacoras
     ]);
 
 } catch (Exception $e) {

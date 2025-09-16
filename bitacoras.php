@@ -18,15 +18,10 @@
             <main class="content">
                 <div class="card p-4 shadow mt-1">
                     <!-- URL -->
-                    <!-- Hora cargue diario FULL -->
-                    <!-- Frecuencia periódica en horas -->
-                    <!-- API Key -->
-                    <!-- Reintentos automáticos -->
-                    <!-- Grupos de productos seleccionadas (tabla con select Sí/No) -->
                     <div class="mb-2">
                         
                     <br>
-                    <!-- Botacpras  (tabla con select Sí/No) -->
+                  
                     <div class="mb-2">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <label class="form-label fw-semibold m-0">Bitacoras disponibles</label>
@@ -41,13 +36,13 @@
                                  <th>Fecha</th>
                                 <th style="width:160px;">Hora</th>
                                 <th style="width:200px;">Origen</th>
-                                <th style="width:200px;">No Regi</th>
+                                <th style="width:200px;">No. Reg.</th>
                                 <th style="width:200px;">Tamaño</th>
                                 <th style="width:200px;">Resultado</th>
                                 <th style="width:300px;">Error</th>
                                 <th >Parametros</th>
-                                <th style="width:200px;">Inicio</th>
-                                <th style="width:200px;">Fin</th>
+                                <th style="width:200px;">Time Inicio</th>
+                                <th style="width:200px;">Time Fin</th>
                                 <th style="width:100px;">Satisfactorio</th>
                                 <th style="width:300px;">Ruta Archivo</th>
                                 <th style="width:100px;">Archivo Borrado</th>
@@ -59,7 +54,7 @@
                         </div>
 
                         <div class="text-end mt-2">
-                            <button id="btn-guardar-bitacoras" class="btn btn-primary" disabled>Guardar descuento de subgrupo</button>
+                            <button id="btn-guardar-bitacoras" class="btn btn-primary" disabled>Guardar bitacoras</button>
                         </div>
                     </div>
 
