@@ -134,8 +134,8 @@ function cargarTabla(datosFiltro) {
             }
 
             // Mostrar y formatear
-            $('#subtotalVisual').show();
-            $('#subtotalValor').text(total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }));
+           // $('#subtotalVisual').show();
+           // $('#subtotalValor').text(total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }));
         }
 
 
