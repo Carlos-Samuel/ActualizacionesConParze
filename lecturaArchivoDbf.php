@@ -25,11 +25,14 @@ try {
     // Imprime cada registro en una línea
     while ($registro = $tabla->nextRecord()) {
         $valores = [];
-        foreach ($columnas as $columna) {
-            $valores[] = $registro->get($columna);
-        }
-        echo implode(" | ", $valores) . PHP_EOL;
-        echo "<br>";
+        //if ($registro->get('procod') == '9010002') {
+            foreach ($columnas as $columna) {
+                $valores[] = $registro->get($columna);
+            }
+            echo implode(" | ", $valores) . PHP_EOL;
+            echo "<br>";
+        //}
+
     }
 
     $tabla->close();

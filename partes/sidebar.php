@@ -64,6 +64,16 @@
             </a>
           </li>
 
+          <li class="menu-item">
+            <a href="envioManual.php">
+              <span class="menu-icon">
+                <i class="fa fa-bookmark"></i>
+              </span>
+              <span class="menu-title">Envio Manual</span>
+            </a>
+          </li>
+
+
 
           
           <li class="menu-item">

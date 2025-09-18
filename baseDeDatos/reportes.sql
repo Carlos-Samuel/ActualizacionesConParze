@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS reportes;
+
 CREATE TABLE reportes (
 		id_reporte INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador unico del reporte',
 		id_bitacora INTEGER COMMENT 'REFERENCIA ID Bitacora de ejecuciones',
