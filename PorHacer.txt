@@ -6,6 +6,10 @@ APUNTES:
 		2) Tablas mysql de AGIL
 		3) Base de datos mysql APIBD propia del sistema
 
+
+	C:\xampp\mysql\bin\mysql.exe -u root -p maxcampo < Maxcampo.sql
+
+
 POR HACER:
 
 

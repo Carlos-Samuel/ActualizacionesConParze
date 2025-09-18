@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "673795633aaf303e0d3c59ec076f22e4",
+    "content-hash": "dc74032b1d7e9c0b93f1c5e7a007cff7",
     "packages": [
         {
             "name": "composer/pcre",
@@ -84,6 +84,72 @@
                 }
             ],
             "time": "2024-11-12T16:29:46+00:00"
+        },
+        {
+            "name": "hisamu/php-xbase",
+            "version": "2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/luads/php-xbase.git",
+                "reference": "b7fb1da4ffaad2699f87314c753a798d8c3dd1f9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/luads/php-xbase/zipball/b7fb1da4ffaad2699f87314c753a798d8c3dd1f9",
+                "reference": "b7fb1da4ffaad2699f87314c753a798d8c3dd1f9",
+                "shasum": ""
+            },
+            "require": {
+                "ext-iconv": "*",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^7.0||^8.0||^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "XBase\\": "src"
+                },
+                "exclude-from-classmap": [
+                    "/tests"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Luã de Souza",
+                    "email": "lsouza@codeinc.com.br"
+                },
+                {
+                    "name": "Erwin Kooi",
+                    "email": "info@cyane.nl"
+                },
+                {
+                    "name": "Alexander Strizhak",
+                    "email": "gam6itko@gmail.com"
+                }
+            ],
+            "description": "A simple parser for *.dbf, *.fpt files using PHP",
+            "homepage": "https://github.com/luads/php-xbase",
+            "keywords": [
+                "dbase",
+                "dbf",
+                "foxpro"
+            ],
+            "support": {
+                "issues": "https://github.com/luads/php-xbase/issues",
+                "source": "https://github.com/luads/php-xbase/tree/2.2.0"
+            },
+            "time": "2024-08-15T13:46:08+00:00"
         },
         {
             "name": "maennchen/zipstream-php",

@@ -11,6 +11,10 @@ class ComposerStaticInit62e10e6c8df9afc192311b196c75bb33
         array (
             'ZipStream\\' => 10,
         ),
+        'X' => 
+        array (
+            'XBase\\' => 6,
+        ),
         'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
@@ -34,14 +38,18 @@ class ComposerStaticInit62e10e6c8df9afc192311b196c75bb33
         array (
             0 => __DIR__ . '/..' . '/maennchen/zipstream-php/src',
         ),
+        'XBase\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/hisamu/php-xbase/src',
+        ),
         'Psr\\SimpleCache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/simple-cache/src',
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (

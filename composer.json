@@ -1,5 +1,6 @@
 {
     "require": {
-        "phpoffice/phpspreadsheet": "^4.1"
+        "phpoffice/phpspreadsheet": "^4.1",
+        "hisamu/php-xbase": "^2.2"
     }
 }
