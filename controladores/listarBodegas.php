@@ -8,8 +8,7 @@ try {
     $con = Connection::getInstance()->getConnection();
     $connParametrizacion = ConnectionParametrizacion::getInstance()->getConnection();
 
-    // 1) Obtener el parámetro EMPRESAS_SELECCIONADAS (emprcod separados por ;)
-    $codigoParam = 'EMPRESAS_SELECCIONADAS';
+    $codigoParam = 'EMPRESA';
     $stmtParam = $connParametrizacion->prepare("SELECT valor 
                                 FROM parametros 
                                 WHERE codigo = ? AND vigente = TRUE 
@@ -29,7 +28,6 @@ try {
         }
     }
 
-    // Si no hay empresas parametrizadas, devolver lista vacía (status 200)
     if (count($empresasCod) === 0) {
         http_response_code(200);
         echo json_encode([
