@@ -16,8 +16,8 @@ mysqli_report(MYSQLI_REPORT_OFF);
 const DBF_PATH     = "C:\\Users\\csamu\\OneDrive\\Escritorio\\Parze\\PRODEXIS.DBF";
 const DBF_ENCODING = 'CP1252';
 
-const PARAM_BODEGAS   = 'BODEGAS_SELECCIONADAS';
-const PARAM_SUBGRUPOS = 'SUBGRUPOS_CON_DESCUENTO';
+const PARAM_BODEGAS   = '';
+const PARAM_SUBGRUPOS = '';
 
 const EXPORT_DIR = __DIR__ . '/../../exports';
 const CSV_DELIM  = ';';
@@ -41,24 +41,6 @@ function getValorVigenteParametro(mysqli $con, string $codigo): ?array {
     $row = $res->fetch_assoc() ?: null;
     $st->close();
     return $row;
-}
-
-function parse_bodegas(string $raw): array {
-    $out = [];
-    $json = json_decode($raw, true);
-    if (is_array($json)) {
-        foreach ($json as $v) {
-            if ($v === null) continue;
-            $b = trim((string)(is_array($v) ? ($v['bod'] ?? $v['bodega'] ?? $v['id'] ?? '') : $v));
-            if ($b !== '') $out[$b] = true;
-        }
-        if (!empty($out)) return $out;
-    }
-    foreach (preg_split('/[,\;\|\s]+/', $raw, -1, PREG_SPLIT_NO_EMPTY) as $p) {
-        $b = trim($p);
-        if ($b !== '') $out[$b] = true;
-    }
-    return $out;
 }
 
 function parse_subgrupos_descuento(string $raw): array {
@@ -88,35 +70,79 @@ function parse_subgrupos_descuento(string $raw): array {
     return $map;
 }
 
-function obtenerProductosPorCodigo(mysqli $con, array $codes, mysqli $conParam, int $id_bitacora): array {
-    if (empty($codes)){
+function norm_code(string $s): string {
+    // Reemplaza NBSP por espacio normal y trimea
+    $s = str_replace("\xC2\xA0", ' ', $s);
+    return trim($s);
+}
+
+function obtenerProductosPorCodigo(
+    mysqli $con,
+    array $codes,
+    mysqli $conParam,
+    int $id_bitacora,
+    string $pEmp,
+    string $pPre
+): array {
+    $codes = array_values(array_unique(array_filter(array_map(
+        static fn($v) => norm_code((string)$v), $codes
+    ), static fn($v) => $v !== '')));
+    if (!$codes) {
         return [];
     }
 
+    $empId = (int)$pEmp;
+    $preId = (int)$pPre;
+
     $placeholders = implode(',', array_fill(0, count($codes), '?'));
-    $sql  = "SELECT ProCod, SubId, ProCosto FROM productos WHERE ProCod IN ($placeholders)";
+    $sql = "SELECT p.ProCod as procod, p.SubId as subid, tpp.proprecio as proprecio
+            FROM productos p
+            JOIN tbl_prodprecio tpp ON tpp.proid = p.ProId
+            WHERE p.empId = ? AND tpp.tabpreid = ? AND p.ProCod IN ($placeholders)";
 
     $st = $con->prepare($sql);
-    
-    if (!$st) throw new RuntimeException("Error prepare productos: " . $con->error);
+    if (!$st) {
+        throw new RuntimeException("Error prepare productos: " . $con->error);
+    }
 
-    $types = str_repeat('s', count($codes));
-    $st->bind_param($types, ...array_values($codes));
-    $st->execute();
+    $types = 'ii' . str_repeat('s', count($codes));
+
+    $params = [];
+    $params[] = &$types;
+    $params[] = &$empId;
+    $params[] = &$preId;
+    foreach ($codes as $k => $v) {
+        $codes[$k] = norm_code((string)$v);
+        $params[] = &$codes[$k];
+    }
+
+    if (!call_user_func_array([$st, 'bind_param'], $params)) {
+        $err = $st->error;
+        $st->close();
+        throw new RuntimeException("Error bind_param productos: " . $err);
+    }
+
+    if (!$st->execute()) {
+        $err = $st->error;
+        $st->close();
+        throw new RuntimeException("Error execute productos: " . $err);
+    }
+
     $res = $st->get_result();
-    
     $map = [];
-    
     while ($row = $res->fetch_assoc()) {
-        $code = (string)$row['ProCod'];
+        $code = norm_code((string)$row['procod']);
         $map[$code] = [
-            'SubId'    => isset($row['SubId']) ? (int)$row['SubId'] : null,
-            'ProCosto' => isset($row['ProCosto']) ? (float)$row['ProCosto'] : null,
+            'subid'    => isset($row['subid']) ? (int)$row['subid'] : null,
+            'proprecio' => isset($row['proprecio']) ? (float)$row['proprecio'] : null,
         ];
     }
+    $res->free();
     $st->close();
+
     return $map;
 }
+
 
 function ensure_export_dir(): void {
     if (!is_dir(EXPORT_DIR) && !mkdir(EXPORT_DIR, 0775, true) && !is_dir(EXPORT_DIR)) {
@@ -124,7 +150,7 @@ function ensure_export_dir(): void {
     }
 }
 
-function leerDbfFiltrado(array $bodegasSet): array {
+function leerDbfFiltrado(string $bodega): array {
     if (!file_exists(DBF_PATH)) {
         throw new RuntimeException("DBF no existe en ruta: " . DBF_PATH);
     }
@@ -149,8 +175,7 @@ function leerDbfFiltrado(array $bodegasSet): array {
     while ($rec = $tabla->nextRecord()) {
         $bod = trim((string)$rec->get($colBodcod));
 
-        if ($bod === '' || !isset($bodegasSet[$bod])) { 
-            //Aqui se filtran por los registros sin bodegas o que las podegas no estan entre las parametrizadas
+        if ($bod === '' || $bodega != $bod) { 
             continue; 
         }
 
@@ -167,8 +192,7 @@ function leerDbfFiltrado(array $bodegasSet): array {
             continue; 
         }
 
-        if (!isset($cantidadPorProducto[$code])) $cantidadPorProducto[$code] = 0;
-        $cantidadPorProducto[$code] += $qty;
+        $cantidadPorProducto[$code] = $qty;
         $codesSeen[$code] = true;
     }
     $tabla->close();
@@ -257,13 +281,12 @@ function generarCsv(string $mode, array $rows, array $diffs): string {
 
     fputcsv($fp, ['code','qty','costo','descuento'], CSV_DELIM);
     foreach ($rows as $code => $r) {
-        // En modo diff, todo. En modo completo, solo los que tienen qty > 0
-        if ($mode === 'DELTA' || $r['qty'] != 0) {
+        if (!($r['costo'] === null || $r['costo'] === '' || !is_finite($r['costo']) || $r['costo'] == 0)) {
             fputcsv($fp, [
                 $code,
-                number_format((float)$r['qty'],      0, '.', ''),
-                $r['costo'] === number_format((int)$r['costo'], 0, '.', ''),
-                number_format((float)$r['descuento'], 0, '.', ''),
+                number_format((int)$r['qty'],0, '.', ''),
+                number_format((int)$r['costo'], 0, '.', ''),
+                number_format((int)$r['descuento'], 0, '.', ''),
             ], CSV_DELIM);
         }
     }
@@ -285,40 +308,49 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
     try {
         
         // 1) Parámetros
-        $pBod = getValorVigenteParametro($conParam, PARAM_BODEGAS);
-        $pSub = getValorVigenteParametro($conParam, PARAM_SUBGRUPOS);
+        $pEmp = getValorVigenteParametro($conParam, "EMPRESA");
+        $pBod = getValorVigenteParametro($conParam, "BODEGA");
+        $pPre = getValorVigenteParametro($conParam, "PRECIOS");
+        $pSub = getValorVigenteParametro($conParam, "SUBGRUPOS_CON_DESCUENTO");
 
-        if (!$pBod) throw new RuntimeException("No hay parámetro vigente para ".PARAM_BODEGAS);
-        if (!$pSub) throw new RuntimeException("No hay parámetro vigente para ".PARAM_SUBGRUPOS);
+        if (!$pEmp) throw new RuntimeException("No hay parámetro vigente para EMPRESA");
+        if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
+        if (!$pPre) throw new RuntimeException("No hay parámetro vigente para PRECIOS");
+        if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
 
-        $bodegasSet = parse_bodegas((string)$pBod['valor']);
+
+        $pEmp = (string)getValorVigenteParametro($conParam, "EMPRESA")['valor'];
+        $pBod = (string)getValorVigenteParametro($conParam, "BODEGA")['valor'];
+        $pPre = (string)getValorVigenteParametro($conParam, "PRECIOS")['valor'];
         $subDescMap = parse_subgrupos_descuento((string)$pSub['valor']);
-
-        if (empty($bodegasSet)) throw new RuntimeException("PARÁMETRO BODEGAS vacío → no habrá registros del DBF.");
 
         registrar_paso($conParam, $id_bitacora, 'Parametros obtenidos e inicia lectura DBF');
 
         // 2) DBF
-        $dbfData = leerDbfFiltrado($bodegasSet);
+        $dbfData = leerDbfFiltrado($pBod);
         $cantidadPorProducto = $dbfData['cantidadPorProducto'];
         $codes   = $dbfData['codes'];
+
         if (empty($codes)) {
             throw new RuntimeException("Archivo DBF no tiene filas en las bodegas seleccionadas.");
         }
 
-        registrar_paso($conParam, $id_bitacora, 'Termina lectura DBF, inicia procesamiento');
+        registrar_paso($conParam, $id_bitacora, 'Termina lectura DBF, inicia procesamiento inicial');
 
         // 3) Productos
-        $productosMap = obtenerProductosPorCodigo($conProd, $codes, $conParam, $id_bitacora);
-        $missingProducts = array_values(array_diff($codes, array_keys($productosMap)));
-
+        $productosMap = obtenerProductosPorCodigo($conProd, $codes, $conParam, $id_bitacora, $pEmp, $pPre);
+        registrar_paso($conParam, $id_bitacora, 'Termina procesamiento inicial, inicia estado actual');
 
         // 4) Estado actual
         $current = [];
         foreach ($cantidadPorProducto as $code => $qty) {
+
+            //registrar_paso($conParam, $id_bitacora, 'Procesando producto: ' . $code . ' con qty ' . $qty);
+
             $p      = $productosMap[$code] ?? null;
-            $subId  = $p['SubId']    ?? null;
-            $costo  = $p['ProCosto'] ?? null;
+            $subId  = $p['subid'] ?? 0;
+            $costo  = $p['proprecio'] ?? 0;
+            //registrar_paso($conParam, $id_bitacora, 'Procesando producto: ' . $code . ' con costo ' . $costo . ' y subId ' . $subId);
 
             $desc = 0;
             if ($subId !== null && isset($subDescMap[(int)$subId])) {
@@ -330,9 +362,13 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
                 'costo'     => $costo === null ? 0 : (int)$costo,
                 'descuento' => (int)$desc,
             ];
+            //registrar_paso($conParam, $id_bitacora, 'Procesando producto: ' . $code . ' con qty ' . $qty . ', costo ' . ($costo===null?'NULL':$costo) . ' y descuento ' . $desc);
+
+
+
         }
 
-        registrar_paso($conParam, $id_bitacora, 'Termina obtener productos');
+        registrar_paso($conParam, $id_bitacora, 'Termina estado actual, inicial cargar reporte previo');
 
         // 5) Reporte previo
         $snapshot = cargarReportePrevio($conParam);
