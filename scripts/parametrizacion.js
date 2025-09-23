@@ -100,6 +100,20 @@ const PARAMS = [
       // recomendado <= 10 (no bloquea)
       return null;
     }
+  },
+  {
+    code: 'TIEMPO_ENTRE_REINTENTOS',
+    input: '#param-reintentos',
+    button: '#btn-guardar-reintentos',
+    desc: 'Número de reintentos automáticos',
+    loadTransform: v => (v ?? '').toString().trim(),
+    saveTransform: v => v.trim(),
+    validate: (val) => {
+      if (val === '') return 'Debes ingresar el número de reintentos.';
+      const n = Number(val);
+      if (!Number.isInteger(n) || n < 0) return 'Los reintentos deben ser un entero ≥ 0.';
+      return null;
+    }
   }
 ];
 

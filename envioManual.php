@@ -20,13 +20,17 @@
                     <div class="mb-2">
                         
                     <br>
-                        <h1 class="h4 mb-3">Demo: Bitácora y Log de pasos</h1>
+                        <h1 class="h4 mb-3">Ejecución manual y paso a paso</h1>
 
-                        <div class="mb-3 d-flex align-items-center">
-                            <button id="btnActualizar" class="btn btn-primary">Actualizar API</button>
-                            <span id="status" class="ms-3 text-muted"></span>
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <button class="btn btn-primary btn-enviar" data-mode="FULL">Enviar FULL</button>
+
+                            <button class="btn btn-primary btn-enviar" data-mode="DELTA">Enviar DELTA</button>
                         </div>
 
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <span class="status text-muted"></span>
+                        </div>
                         <div class="mb-2">
                             <strong>ID Bitácora:</strong> <span id="idBitacora" class="mono">–</span>
                         </div>

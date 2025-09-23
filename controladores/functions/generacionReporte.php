@@ -5,23 +5,10 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../ConnectionParametrizacion.php';
 require_once __DIR__ . '/../Connection.php';
 require_once 'bitacoraFunctions.php';
+require_once __DIR__ . '/../bootstrap.php';
+
 use XBase\TableReader;
 mysqli_report(MYSQLI_REPORT_OFF);
-
-/* =======================
-   CONFIG
-   ======================= */
-
-
-const DBF_PATH     = "C:\\Users\\csamu\\OneDrive\\Escritorio\\Parze\\PRODEXIS.DBF";
-const DBF_ENCODING = 'CP1252';
-
-const PARAM_BODEGAS   = '';
-const PARAM_SUBGRUPOS = '';
-
-const EXPORT_DIR = __DIR__ . '/../../exports';
-const CSV_DELIM  = ';';
-
 
 /* =======================
    HELPERS
@@ -266,7 +253,24 @@ function guardarReportes(mysqli $con, int $id_bitacora, array $current): void
     }
 }
 
-function generarCsv(string $mode, array $rows, array $diffs): string {
+function fileSizeFormatted(string $path, int $decimales = 2): string
+{
+    $bytes = filesize($path);
+    if ($bytes === false) {
+        throw new RuntimeException("No se pudo obtener el tamaño de: $path");
+    }
+
+    if ($bytes < 1024 * 1024) {
+        $kb = $bytes / 1024;
+        return number_format($kb, $decimales) . ' KB';
+    }
+
+    $mb = $bytes / (1024 * 1024);
+    return number_format($mb, $decimales) . ' MB';
+}
+
+
+function generarCsv(string $mode, array $rows, array $diffs, int &$noReg, string &$tamArchivo, string &$rutaArchivo): string {
     ensure_export_dir();
     $stamp = date('Ymd_His');
     $fname = "reporte_inventario_{$stamp}.csv";
@@ -292,6 +296,11 @@ function generarCsv(string $mode, array $rows, array $diffs): string {
     }
 
     fclose($fp);
+
+    $noReg      = count($rows);
+    $tamArchivo = fileSizeFormatted($path);
+    $rutaArchivo = $fname;
+
     return $fname;
 }
 
@@ -303,6 +312,10 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
     $conProd  = Connection::getInstance()->getConnection();
     $conProd->set_charset('utf8mb4');
 
+    $noReg = 0;
+    $tamArchivo = "";
+    $rutaArchivo = "";
+
     registrar_paso($conParam, $id_bitacora, 'Llega a la función de generación de reporte');
 
     try {
@@ -312,16 +325,23 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
         $pBod = getValorVigenteParametro($conParam, "BODEGA");
         $pPre = getValorVigenteParametro($conParam, "PRECIOS");
         $pSub = getValorVigenteParametro($conParam, "SUBGRUPOS_CON_DESCUENTO");
+        $pUrl = getValorVigenteParametro($conParam, "URL");
+        $pApikey = getValorVigenteParametro($conParam, "APIKEY");
+
 
         if (!$pEmp) throw new RuntimeException("No hay parámetro vigente para EMPRESA");
         if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
         if (!$pPre) throw new RuntimeException("No hay parámetro vigente para PRECIOS");
-        if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
+        //if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
+        if (!$pUrl) throw new RuntimeException("No hay parámetro vigente para URL");
+        if (!$pApikey) throw new RuntimeException("No hay parámetro vigente para APIKEY");
 
 
-        $pEmp = (string)getValorVigenteParametro($conParam, "EMPRESA")['valor'];
-        $pBod = (string)getValorVigenteParametro($conParam, "BODEGA")['valor'];
-        $pPre = (string)getValorVigenteParametro($conParam, "PRECIOS")['valor'];
+        $pEmp = (string)$pEmp['valor'];
+        $pBod = (string)$pBod['valor'];
+        $pPre = (string)$pPre['valor'];
+        $pUrl = (string)$pUrl['valor'];
+        $pApikey = (string)$pApikey['valor'];
         $subDescMap = parse_subgrupos_descuento((string)$pSub['valor']);
 
         registrar_paso($conParam, $id_bitacora, 'Parametros obtenidos e inicia lectura DBF');
@@ -363,8 +383,6 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
                 'descuento' => (int)$desc,
             ];
             //registrar_paso($conParam, $id_bitacora, 'Procesando producto: ' . $code . ' con qty ' . $qty . ', costo ' . ($costo===null?'NULL':$costo) . ' y descuento ' . $desc);
-
-
 
         }
 
@@ -418,24 +436,47 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
         registrar_paso($conParam, $id_bitacora, 'Termina diferencias');
 
         // 7) CSV + persistencia
-        $csvFile = generarCsv($mode, $current, $diffs);
+        $csvFile = generarCsv($mode, $current, $diffs, $noReg, $tamArchivo, $rutaArchivo);
 
         registrar_paso($conParam, $id_bitacora, 'Termina generar csv con mode ' . $mode . ': ' . $csvFile . 
             " (total registros: " . count($current) . ", diffs: " . count($diffs) . ")");
         
         guardarReportes($conParam, $id_bitacora, $current);
 
+        $up = $conParam->prepare(
+            "UPDATE bitacora
+            SET cantidad_registros_enviados = ?,
+                tamaño_del_archivo          = ?,
+                ruta_archivo                = ?,
+                resultado_del_envio         = 'Exitoso',
+                fecha_hora_de_fin           = CURRENT_TIMESTAMP
+            WHERE id_bitacora = ?"
+        );
+
+        if ($up) {
+            $up->bind_param('issi', $noReg, $tamArchivo, $rutaArchivo, $id_bitacora);
+            $up->execute();
+            $up->close();
+        }
+
     } catch (Throwable $e) {
         registrar_paso($conParam, $id_bitacora, 'Error: ' . $e->getMessage());
+
+        $up = $conParam->prepare(
+            "UPDATE bitacora
+            SET resultado_del_envio = 'Fallido',
+                descripcion_error   = ?
+            WHERE id_bitacora = ?"
+        );
+
+        if ($up) {
+            $up->bind_param('si', $e->getMessage(), $id_bitacora);
+            $up->execute();
+            $up->close();
+        }
+
     }
 
-    registrar_paso($conParam, $id_bitacora, 'termina');
-
-    $up = $conParam->prepare("UPDATE bitacora SET fecha_hora_de_fin = CURRENT_TIMESTAMP WHERE id_bitacora = ?");
-    if ($up) {
-        $up->bind_param('i', $id_bitacora);
-        $up->execute();
-        $up->close();
-    }
+    registrar_paso($conParam, $id_bitacora, 'Termina');
 
 }

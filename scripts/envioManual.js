@@ -19,50 +19,91 @@ function renderLogs(rows){
   });
 }
 
-function startPolling(){
-    if(pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(async () => {
-        if(!currentId) return;
-        try{
-            const res = await fetch('controladores/getLogsBitacora.php?id_bitacora=' + encodeURIComponent(currentId), {cache:'no-store'});
-            const data = await res.json();
-            if(data.ok){
-                renderLogs(data.rows);
-                const done = data.rows.some(r => (r.descripcion_paso || '').toLowerCase() === 'termina');
-                if(done){
-                    clearInterval(pollTimer);
-                    $('#status').text('Proceso finalizado.');
-                    $('#btnActualizar').prop('disabled', false);
-                }
-            }
-        }catch(e){
-        console.error(e);
+function startPolling($status, $btn, bitacoraId) {
+  if (pollTimer) clearInterval(pollTimer);
+
+  pollTimer = setInterval(async () => {
+    // Si cambió el id (p.ej. el usuario disparó otro proceso), detén este polling
+    if (!bitacoraId || bitacoraId !== currentId) {
+      clearInterval(pollTimer);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        'controladores/getLogsBitacora.php?id_bitacora=' + encodeURIComponent(bitacoraId),
+        { cache: 'no-store' }
+      );
+      const data = await res.json();
+
+      if (data.ok) {
+        renderLogs(data.rows);
+
+        const done = data.rows.some(
+          (r) => (r.descripcion_paso || '').toLowerCase() === 'termina'
+        );
+
+        if (done) {
+          clearInterval(pollTimer);
+          $status.text('Proceso finalizado.');
+          $btn.prop('disabled', false);
+          // Opcional: liberar el id activo
+          // currentId = null;
         }
-    }, 2000);
+      }
+    } catch (e) {
+      console.error(e);
+      // No reactivamos el botón aquí para evitar estados inconsistentes;
+      // si quieres, puedes mostrar el error:
+      // $status.text('Error al consultar el estado.');
+    }
+  }, 2000);
 }
 
-$('#btnActualizar').on('click', async function(){
-    $(this).prop('disabled', true);
-    $('#status').text('Creando bitácora…');
+// === Click handler para FULL / DELTA ===
+$(document).on('click', '.btn-enviar', async function () {
+  const $btn    = $(this);
+  const mode    = String($btn.data('mode') || '').toUpperCase(); // FULL | DELTA
+  const $status = $btn.nextAll('.status').first();
 
-    try{
-        const res = await fetch('controladores/registroInicialBitacora.php', { method: 'POST' });
-        const data = await res.json();
-        if(!data.ok) throw new Error(data.error || 'Error desconocido');
+  if (mode !== 'FULL' && mode !== 'DELTA') {
+    console.error('Modo inválido:', mode);
+    return;
+  }
 
-        currentId = data.id_bitacora;
-        $('#idBitacora').text(currentId);
-        $('#status').text('Ejecutando…');
+  $btn.prop('disabled', true);
+  $status.text('Creando bitácora…');
 
-        fetch('controladores/gestorGeneracionInforme.php', {
-        method: 'POST',
-        body: new URLSearchParams({ id_bitacora: currentId })
-        });
+  try {
+    // 1) Crear registro inicial
+    const res = await fetch('controladores/registroInicialBitacora.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ tipo_de_cargue: mode })
+    });
 
-        startPolling();
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error desconocido');
 
-    } catch(e){
-        $('#status').text('Error: ' + e.message);
-        $('#btnActualizar').prop('disabled', false);
-    }
+    // Guardar id global y mostrarlo
+    currentId = data.id_bitacora;
+    $('#idBitacora').text(currentId);
+    $status.text('Ejecutando…');
+
+    // 2) Disparar el proceso largo (fire-and-forget)
+    fetch('controladores/gestorGeneracionInforme.php', {
+      method: 'POST',
+      body: new URLSearchParams({
+        id_bitacora: currentId,
+        tipo_de_cargue: mode
+      })
+    });
+
+    // 3) Iniciar polling para este botón/estado e id
+    startPolling($status, $btn, currentId);
+
+  } catch (e) {
+    $status.text('Error: ' + e.message);
+    $btn.prop('disabled', false);
+  }
 });

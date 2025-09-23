@@ -8,6 +8,13 @@ require_once 'functions/bitacoraFunctions.php';
 require_once 'functions/generacionReporte.php';
 
 $id = isset($_POST['id_bitacora']) ? (int)$_POST['id_bitacora'] : 0;
+$mode = $_POST['tipo_de_cargue'];
+
+if ($mode !== "FULL" && $mode !== "DELTA") {
+    http_response_code(400);
+    echo 'tipo_de_cargue inválido';
+    exit;
+}
 
 if ($id <= 0) {
     http_response_code(400);
@@ -17,15 +24,6 @@ if ($id <= 0) {
 
 $conParam = ConnectionParametrizacion::getInstance()->getConnection();
 
-try {
-    registrar_paso($conParam, $id, 'Inicia el proceso de envío manual');
+registrar_paso($conParam, $id, 'Inicia el proceso de envío manual');
 
-    generarReporteInventario($id, "DELTA");
-
-    echo 'OK';
-} catch (Throwable $e) {
-    registrar_paso($conParam, $id, 'Fallo: ' . $e->getMessage());
-    http_response_code(500);
-    echo 'ERROR: ' . $e->getMessage();
-}
-
+generarReporteInventario($id, $mode);
