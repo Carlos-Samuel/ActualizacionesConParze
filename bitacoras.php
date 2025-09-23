@@ -40,10 +40,9 @@
                                 <th style="width:200px;">Tamaño</th>
                                 <th style="width:200px;">Resultado</th>
                                 <th style="width:300px;">Mensaje de Error </th>
-                                <th >Parametros</th>
-                                <th style="width:200px;">Time Inicio</th>
-                                <th style="width:200px;">Time Fin</th>
-                                <th style="width:100px;">Satisfactorio</th>
+                                <th>Parametros</th>
+                                <th style="width:200px;">Inicio</th>
+                                <th style="width:200px;">Final</th>
                                 <th style="width:300px;">Ruta Archivo</th>
                                 <th style="width:100px;">Archivo Borrado</th>
                             </tr>
@@ -52,12 +51,7 @@
                             </tbody>
                             </table>
                         </div>
-
-                        <div class="text-end mt-2">
-                            <button id="btn-guardar-bitacoras" class="btn btn-primary" disabled>Guardar bitacoras</button>
-                        </div>
                     </div>
-
                 </div>
             </main>
         </div>

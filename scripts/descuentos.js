@@ -3,7 +3,7 @@
 
 const ENDPOINT_GET  = 'controladores/obtenerParametro.php';
 const ENDPOINT_SAVE = 'controladores/guardarParametro.php';
-const PARAM_EMPRESAS = 'EMPRESAS_SELECCIONADAS';
+const PARAM_EMPRESAS = 'EMPRESA';
 const ENDPOINT_LISTAR_EMPRESAS = 'controladores/listarEmpresas.php';
 const PARAM_GRUPOS = 'GRUPOS_SELECCIONADOS';
 //const ENDPOINT_LISTAR_GRUPOS = 'controladores/listarGrupos.php';

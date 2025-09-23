@@ -12,14 +12,7 @@
     <div class="sidebar-content">
       <nav class="menu open-current-submenu">
         <ul>
-          <li class="menu-item">
-            <a href="descuentos.php">
-              <span class="menu-icon">
-                <i class="fa fa-bookmark"></i>
-              </span>
-              <span class="menu-title">Descuentos</span>
-            </a>
-          </li>
+
           <li class="menu-item">
             <a href="bitacoras.php">
               <span class="menu-icon">
@@ -37,12 +30,31 @@
               <span class="menu-title">Interfaz Parametrización</span>
             </a>
           </li>
+
           <li class="menu-item">
-            <a href="#">
+            <a href="descuentos.php">
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>
-              <span class="menu-title">Procesos</span>
+              <span class="menu-title">Descuentos</span>
+            </a>
+          </li>
+
+          <li class="menu-item">
+            <a href="lecturaArchivoDbf.php">
+              <span class="menu-icon">
+                <i class="fa fa-bookmark"></i>
+              </span>
+              <span class="menu-title">Lectura Archivo Dbf</span>
+            </a>
+          </li>
+
+          <li class="menu-item">
+            <a href="envioManual.php">
+              <span class="menu-icon">
+                <i class="fa fa-bookmark"></i>
+              </span>
+              <span class="menu-title">Envio Manual</span>
             </a>
           </li>
           <hr>

@@ -1,34 +1,32 @@
 <?php
+
+    require_once 'bootstrap.php';
+
     class Connection {
-        private static $instance = null;
-        private $connection;
+        private static ?self $instance = null;
+        private \mysqli $connection;
 
         private function __construct() {
-            $host = "localhost";
-            $username = "root";
-            $password = "";
-            $database = "agrogranada";
+            $host    = env_required('DB1_HOST');
+            $port    = (int)env('DB1_PORT', '3306');
+            $dbname  = env_required('DB1_NAME');
+            $user    = env_required('DB1_USER');
+            $pass    = env('DB1_PASS', '');
+            $charset = env('DB1_CHARSET', 'utf8mb4');
 
-            $this->connection = new mysqli($host, $username, $password, $database);
-
-            if ($this->connection->connect_error) {
-                die("Error de conexión: " . $this->connection->connect_error);
-            }
-
-            // Configurar la codificación de caracteres a UTF-8
-            $this->connection->set_charset("utf8");
+            mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+            $this->connection = new mysqli($host, $user, $pass, $dbname, $port);
+            $this->connection->set_charset($charset);
         }
 
-        public static function getInstance() {
-            if (self::$instance == null) {
-                self::$instance = new Connection();
+        public static function getInstance(): self {
+            if (self::$instance === null) {
+                self::$instance = new self();
             }
             return self::$instance;
         }
 
-        public function getConnection() {
+        public function getConnection(): \mysqli {
             return $this->connection;
         }
     }
-
-?>

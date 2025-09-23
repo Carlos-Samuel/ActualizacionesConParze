@@ -3,10 +3,15 @@
 
 const ENDPOINT_GET  = 'controladores/obtenerParametro.php';
 const ENDPOINT_SAVE = 'controladores/guardarParametro.php';
-const PARAM_EMPRESAS = 'EMPRESAS_SELECCIONADAS';
+
+const PARAM_EMPRESAS = 'EMPRESA'; // ahora será 1 sola, pero mantenemos el código
 const ENDPOINT_LISTAR_EMPRESAS = 'controladores/listarEmpresas.php';
-const PARAM_BODEGAS = 'BODEGAS_SELECCIONADAS';
+
+const PARAM_BODEGAS = 'BODEGA';   // ahora 1 sola, mantenemos el código
 const ENDPOINT_LISTAR_BODEGAS = 'controladores/listarBodegas.php';
+
+const PARAM_PRECIOS = 'PRECIOS';                 // nuevo parámetro
+const ENDPOINT_LISTAR_PRECIOS = 'controladores/listarPrecios.php';
 
 // Definición de parámetros y reglas
 const PARAMS = [
@@ -95,34 +100,57 @@ const PARAMS = [
       // recomendado <= 10 (no bloquea)
       return null;
     }
+  },
+  {
+    code: 'TIEMPO_ENTRE_REINTENTOS',
+    input: '#param-reintentos',
+    button: '#btn-guardar-reintentos',
+    desc: 'Número de reintentos automáticos',
+    loadTransform: v => (v ?? '').toString().trim(),
+    saveTransform: v => v.trim(),
+    validate: (val) => {
+      if (val === '') return 'Debes ingresar el número de reintentos.';
+      const n = Number(val);
+      if (!Number.isInteger(n) || n < 0) return 'Los reintentos deben ser un entero ≥ 0.';
+      return null;
+    }
   }
 ];
 
 let empresasCache = [];
-let seleccionInicialNorm = '';
+let empresaSeleccionInicial = '';
 let $tablaEmpresasBody = null;
-let bodegasCache = []; 
-let bodegasSeleccionInicialNorm = '';
+
+let bodegasCache = [];
+let bodegaSeleccionInicial = '';
 let $tablaBodegasBody = null;
 
+let preciosCache = [];
+let precioSeleccionInicial = '';
+let $tablaPreciosBody = null;
+
 $(document).ready(function () {
-    PARAMS.forEach(setupParam);
-    $tablaEmpresasBody = $('#tabla-empresas tbody');
-    $tablaBodegasBody = $('#tabla-bodegas tbody');
+  PARAMS.forEach(setupParam);
 
-    cargarEmpresasYSeleccion();
-    cargarBodegasYSeleccion();
+  $tablaEmpresasBody = $('#tabla-empresas tbody');
+  $tablaBodegasBody = $('#tabla-bodegas tbody');
+  $tablaPreciosBody  = $('#tabla-precios tbody');
 
-    // Guardar
-    $('#btn-guardar-empresas').on('click', function () {
-        guardarEmpresasSeleccionadas();
-    });
+  cargarEmpresasYSeleccion();
 
-    $('#btn-guardar-bodegas').on('click', function () {
-        guardarBodegasSeleccionadas();
-    });
+  $('#btn-guardar-empresas').on('click', guardarEmpresaSeleccionada);
+  $('#btn-guardar-bodegas').on('click', guardarBodegaSeleccionada);
+  $('#btn-guardar-precios').on('click', guardarPrecioSeleccionado);
 
 });
+
+function firstOfParamValue(valor) {
+  if (!valor) return '';
+  const parts = String(valor).split(';').map(s => s.trim()).filter(Boolean);
+  return parts.length ? parts[0] : '';
+}
+
+
 
 function setupParam(def) {
   const $input = $(def.input);
@@ -197,9 +225,8 @@ function setupParam(def) {
   });
 }
 
-
 function cargarEmpresasYSeleccion() {
-  // 1) Obtener parámetro vigente (lista emprcod separados por ;)
+  // Obtener empresa vigente
   $.ajax({
     url: ENDPOINT_GET,
     method: 'POST',
@@ -207,23 +234,19 @@ function cargarEmpresasYSeleccion() {
     data: { codigo: PARAM_EMPRESAS }
   })
   .done(function (respParam) {
-    let seleccionSet = new Set();
-    if (respParam.statusCode === 200 && respParam.parametro && respParam.parametro.valor) {
-      seleccionSet = parseSeleccionToSet(respParam.parametro.valor);
-      seleccionInicialNorm = normalizeSeleccion(seleccionSet);
+    if (respParam.statusCode === 200 && respParam.parametro) {
+      empresaSeleccionInicial = firstOfParamValue(respParam.parametro.valor);
     } else if (respParam.statusCode === 404) {
-      // No hay selección vigente
-      seleccionSet = new Set();
-      seleccionInicialNorm = '';
+      empresaSeleccionInicial = '';
     } else if (respParam.statusCode === 409) {
-      error('Existen múltiples parámetros vigentes para EMPRESAS_SELECCIONADAS. Corrige la inconsistencia.');
+      error('Existen múltiples parámetros vigentes para EMPRESA. Corrige la inconsistencia.');
       return;
     } else if (respParam.statusCode && respParam.statusCode !== 200) {
-      error(respParam.mensaje || 'No se pudo cargar la selección de empresas.');
+      error(respParam.mensaje || 'No se pudo cargar la empresa parametrizada.');
       return;
     }
 
-    // 2) Listar empresas
+    // Listar empresas
     $.ajax({
       url: ENDPOINT_LISTAR_EMPRESAS,
       method: 'POST',
@@ -232,8 +255,12 @@ function cargarEmpresasYSeleccion() {
     .done(function (respEmp) {
       if (respEmp.statusCode === 200 && Array.isArray(respEmp.empresas)) {
         empresasCache = respEmp.empresas; // [{emprcod, emprnom}]
-        renderTablaEmpresas(empresasCache, seleccionSet);
+        renderTablaEmpresas(empresasCache, empresaSeleccionInicial);
         $('#btn-guardar-empresas').prop('disabled', true);
+
+        // Con empresa parametrizada, cargamos bodegas y precios filtrados
+        cargarBodegasYSeleccion();
+        cargarPreciosYSeleccion();
       } else {
         error(respEmp.mensaje || 'No se pudieron cargar las empresas.');
       }
@@ -244,53 +271,54 @@ function cargarEmpresasYSeleccion() {
 
   })
   .fail(function () {
-    error('Fallo al obtener el parámetro EMPRESAS_SELECCIONADAS.');
+    error('Fallo al obtener el parámetro EMPRESA.');
   });
 }
 
-function renderTablaEmpresas(empresas, seleccionSet) {
+function renderTablaEmpresas(empresas, selectedEmpr) {
   $tablaEmpresasBody.empty();
 
   empresas.forEach(e => {
-    const selected = seleccionSet.has(String(e.emprcod));
+    const code = String(e.emprcod);
     const row = $(`
-      <tr data-cod="${escapeHtml(String(e.emprcod))}">
-        <td class="text-monospace">${escapeHtml(String(e.emprcod))}</td>
+      <tr data-cod="${escapeHtml(code)}">
+        <td class="text-monospace">${escapeHtml(code)}</td>
         <td>${escapeHtml(String(e.emprnom))}</td>
         <td>
-          <select class="form-select form-select-sm emp-sel">
-            <option value="NO">No</option>
-            <option value="SI">Sí</option>
-          </select>
+          <input type="radio" name="empresa-sel" class="form-check-input empresa-radio">
         </td>
       </tr>
     `);
-    row.find('select.emp-sel').val(selected ? 'SI' : 'NO');
+    row.find('input.empresa-radio').prop('checked', code === selectedEmpr);
 
-    // Escuchar cambios para habilitar botón guardar si difiere de la selección inicial
-    row.find('select.emp-sel').on('change', function () {
-      const norm = normalizeSeleccion(getSeleccionActualComoSet());
-      $('#btn-guardar-empresas').prop('disabled', norm === seleccionInicialNorm);
+    row.find('input.empresa-radio').on('change', function () {
+      const current = getEmpresaSeleccionada();
+      $('#btn-guardar-empresas').prop('disabled', current === empresaSeleccionInicial);
+      $('#btn-guardar-bodegas').prop('disabled', true);
+      $tablaPreciosBody.empty();
+      $('#btn-guardar-precios').prop('disabled', true);
+      info('Guarda la empresa para cargar sus bodegas y listas de precios.');
     });
 
     $tablaEmpresasBody.append(row);
   });
 }
 
-function getSeleccionActualComoSet() {
-  const set = new Set();
+function getEmpresaSeleccionada() {
+  let sel = '';
   $tablaEmpresasBody.find('tr').each(function () {
-    const cod = $(this).data('cod');
-    const val = $(this).find('select.emp-sel').val();
-    if (val === 'SI') set.add(String(cod));
+    const checked = $(this).find('input.empresa-radio').is(':checked');
+    if (checked) {
+      sel = String($(this).data('cod'));
+      return false;
+    }
   });
-  return set;
+  return sel;
 }
 
-function guardarEmpresasSeleccionadas() {
-  const seleccionSet = getSeleccionActualComoSet();
-  // Convertir a string "cod1;cod2;cod3"
-  const valor = Array.from(seleccionSet).sort().join(';');
+function guardarEmpresaSeleccionada() {
+  const sel = getEmpresaSeleccionada();
+  if (!sel) { warn('Debes seleccionar una empresa.'); return; }
 
   $.ajax({
     url: ENDPOINT_SAVE,
@@ -298,47 +326,36 @@ function guardarEmpresasSeleccionadas() {
     dataType: 'json',
     data: {
       codigo: PARAM_EMPRESAS,
-      descripcion: 'Empresas habilitadas (emprcod separados por ;)',
-      valor: valor
+      descripcion: 'Empresa habilitada (emprcod único)',
+      valor: sel
     }
   })
   .done(function (resp) {
     if (resp.statusCode === 200) {
-      ok('Selección de empresas guardada correctamente.');
-      // Actualizar baseline
-      seleccionInicialNorm = normalizeSeleccion(seleccionSet);
-      $('#btn-guardar-empresas').prop('disabled', true); 
-       cargarBodegasYSeleccion();
+      ok('Empresa guardada correctamente.');
+      empresaSeleccionInicial = sel;
+      $('#btn-guardar-empresas').prop('disabled', true);
+
+      // Al guardar empresa, recargamos bodegas y precios filtrados
+      cargarBodegasYSeleccion();
+      cargarPreciosYSeleccion();
     } else {
-      error(resp.mensaje || 'No se pudo guardar la selección de empresas.');
+      error(resp.mensaje || 'No se pudo guardar la empresa.');
     }
   })
   .fail(function () {
-    error('Fallo al comunicarse con el servidor al guardar la selección de empresas.');
+    error('Fallo al comunicarse con el servidor al guardar la empresa.');
   });
 }
 
-// ===== utilidades selección =====
-function parseSeleccionToSet(valorStr) {
-  return new Set(
-    String(valorStr)
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-  );
-}
-function normalizeSeleccion(set) {
-  return Array.from(set).sort().join(';'); // normaliza para comparar cambios
-}
-function escapeHtml(s) {
-  return s.replace(/[&<>"'`=\/]/g, function (c) {
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[c];
-  });
-}
-
-
+/* ===============================
+   Bodegas (selección ÚNICA, filtradas por empresa)
+   =============================== */
 function cargarBodegasYSeleccion() {
-  // 1) Obtener selección vigente de parámetro
+  // Primero obtenemos la empresa guardada (por si el usuario no ha dado guardar pero marcó otra)
+  const empresaParam = empresaSeleccionInicial;
+
+  // Obtener bodega vigente
   $.ajax({
     url: ENDPOINT_GET,
     method: 'POST',
@@ -346,31 +363,29 @@ function cargarBodegasYSeleccion() {
     data: { codigo: PARAM_BODEGAS }
   })
   .done(function (respParam) {
-    let seleccionSet = new Set();
-    if (respParam.statusCode === 200 && respParam.parametro && respParam.parametro.valor) {
-      seleccionSet = parseSeleccionToSet(respParam.parametro.valor);
-      bodegasSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
+    if (respParam.statusCode === 200 && respParam.parametro) {
+      bodegaSeleccionInicial = firstOfParamValue(respParam.parametro.valor);
     } else if (respParam.statusCode === 404) {
-      seleccionSet = new Set();
-      bodegasSeleccionInicialNorm = '';
+      bodegaSeleccionInicial = '';
     } else if (respParam.statusCode === 409) {
       error('Existen múltiples parámetros vigentes para BODEGAS_SELECCIONADAS. Corrige la inconsistencia.');
       return;
     } else if (respParam.statusCode && respParam.statusCode !== 200) {
-      error(respParam.mensaje || 'No se pudo cargar la selección de bodegas.');
+      error(respParam.mensaje || 'No se pudo cargar la bodega parametrizada.');
       return;
     }
 
-    // 2) Listar bodegas asignadas a empresa
+    // Listar bodegas filtradas por empresa
     $.ajax({
       url: ENDPOINT_LISTAR_BODEGAS,
       method: 'POST',
-      dataType: 'json'
+      dataType: 'json',
+      data: { emprcod: empresaParam } // <-- IMPORTANTE: filtra por empresa parametrizada
     })
     .done(function (respBod) {
       if (respBod.statusCode === 200 && Array.isArray(respBod.bodegas)) {
         bodegasCache = respBod.bodegas; // [{bodcod, bodnom, emprcod, emprnom}]
-        renderTablaBodegas(bodegasCache, seleccionSet);
+        renderTablaBodegas(bodegasCache, bodegaSeleccionInicial);
         $('#btn-guardar-bodegas').prop('disabled', true);
       } else {
         error(respBod.mensaje || 'No se pudieron cargar las bodegas.');
@@ -386,51 +401,47 @@ function cargarBodegasYSeleccion() {
   });
 }
 
-function renderTablaBodegas(bodegas, seleccionSet) {
+function renderTablaBodegas(bodegas, selectedBod) {
   $tablaBodegasBody.empty();
 
-  // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
-  // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
-
   bodegas.forEach(b => {
-    const selected = seleccionSet.has(String(b.bodcod));
+    const bod = String(b.bodcod);
     const row = $(`
-      <tr data-bod="${escapeHtml(String(b.bodcod))}">
+      <tr data-bod="${escapeHtml(bod)}">
         <td>${escapeHtml(String(b.emprnom))}</td>
-        <td class="text-monospace">${escapeHtml(String(b.bodcod))}</td>
+        <td class="text-monospace">${escapeHtml(bod)}</td>
         <td>${escapeHtml(String(b.bodnom))}</td>
         <td>
-          <select class="form-select form-select-sm bod-sel">
-            <option value="NO">No</option>
-            <option value="SI">Sí</option>
-          </select>
+          <input type="radio" name="bodega-sel" class="form-check-input bodega-radio">
         </td>
       </tr>
     `);
-    row.find('select.bod-sel').val(selected ? 'SI' : 'NO');
+    row.find('input.bodega-radio').prop('checked', bod === selectedBod);
 
-    row.find('select.bod-sel').on('change', function () {
-      const norm = normalizeSeleccion(getSeleccionBodegasActualComoSet());
-      $('#btn-guardar-bodegas').prop('disabled', norm === bodegasSeleccionInicialNorm);
+    row.find('input.bodega-radio').on('change', function () {
+      const current = getBodegaSeleccionada();
+      $('#btn-guardar-bodegas').prop('disabled', current === bodegaSeleccionInicial);
     });
 
     $tablaBodegasBody.append(row);
   });
 }
 
-function getSeleccionBodegasActualComoSet() {
-  const set = new Set();
+function getBodegaSeleccionada() {
+  let sel = '';
   $tablaBodegasBody.find('tr').each(function () {
-    const cod = $(this).data('bod');
-    const val = $(this).find('select.bod-sel').val();
-    if (val === 'SI') set.add(String(cod));
+    const checked = $(this).find('input.bodega-radio').is(':checked');
+    if (checked) {
+      sel = String($(this).data('bod'));
+      return false;
+    }
   });
-  return set;
+  return sel;
 }
 
-function guardarBodegasSeleccionadas() {
-  const seleccionSet = getSeleccionBodegasActualComoSet();
-  const valor = Array.from(seleccionSet).sort().join(';');
+function guardarBodegaSeleccionada() {
+  const sel = getBodegaSeleccionada();
+  if (!sel) { warn('Debes seleccionar una bodega.'); return; }
 
   $.ajax({
     url: ENDPOINT_SAVE,
@@ -438,21 +449,141 @@ function guardarBodegasSeleccionadas() {
     dataType: 'json',
     data: {
       codigo: PARAM_BODEGAS,
-      descripcion: 'Bodegas habilitadas (BodCod separados por ;)',
-      valor: valor
+      descripcion: 'Bodega habilitada (bodcod único)',
+      valor: sel
     }
   })
   .done(function (resp) {
     if (resp.statusCode === 200) {
-      ok('Selección de bodegas guardada correctamente.');
-      bodegasSeleccionInicialNorm = normalizeSeleccion(seleccionSet);
+      ok('Bodega guardada correctamente.');
+      bodegaSeleccionInicial = sel;
       $('#btn-guardar-bodegas').prop('disabled', true);
     } else {
-      error(resp.mensaje || 'No se pudo guardar la selección de bodegas.');
+      error(resp.mensaje || 'No se pudo guardar la bodega.');
     }
   })
   .fail(function () {
-    error('Fallo al comunicarse con el servidor al guardar la selección de bodegas.');
+    error('Fallo al comunicarse con el servidor al guardar la bodega.');
+  });
+}
+
+/* ===============================
+   PRECIOS (selección ÚNICA, filtrados por empresa)
+   =============================== */
+function cargarPreciosYSeleccion() {
+  const empresaParam = empresaSeleccionInicial;
+
+  // Obtener precio vigente
+  $.ajax({
+    url: ENDPOINT_GET,
+    method: 'POST',
+    dataType: 'json',
+    data: { codigo: PARAM_PRECIOS }
+  })
+  .done(function (respParam) {
+    if (respParam.statusCode === 200 && respParam.parametro) {
+      precioSeleccionInicial = firstOfParamValue(respParam.parametro.valor);
+    } else if (respParam.statusCode === 404) {
+      precioSeleccionInicial = '';
+    } else if (respParam.statusCode === 409) {
+      error('Existen múltiples parámetros vigentes para PRECIOS. Corrige la inconsistencia.');
+      return;
+    } else if (respParam.statusCode && respParam.statusCode !== 200) {
+      error(respParam.mensaje || 'No se pudo cargar el PRECIOS parametrizado.');
+      return;
+    }
+
+    // Listar precios filtrados por empresa
+    $.ajax({
+      url: ENDPOINT_LISTAR_PRECIOS,
+      method: 'POST',
+      dataType: 'json',
+      data: { emprcod: empresaParam } // <-- IMPORTANTE: filtra por empresa
+    })
+    .done(function (resp) {
+      if (resp.statusCode === 200 && Array.isArray(resp.precios)) {
+        // Estructura esperada: [{preid, prenom (o nombre)}, emprcod, emprnom]
+        preciosCache = resp.precios;
+        renderTablaPrecios(preciosCache, precioSeleccionInicial);
+        $('#btn-guardar-precios').prop('disabled', true);
+      } else {
+        error(resp.mensaje || 'No se pudieron cargar los PRECIOS.');
+      }
+    })
+    .fail(function () {
+      error('Fallo al comunicarse con el servidor al listar PRECIOS.');
+    });
+
+  })
+  .fail(function () {
+    error('Fallo al obtener el parámetro PRECIOS.');
+  });
+}
+
+function renderTablaPrecios(precios, selectedPre) {
+  $tablaPreciosBody.empty();
+
+  precios.forEach(p => {
+    const tabpreid = String(p.tabpreid);
+    const nombre = p.tabprenom || `Precio ${tabpreid}`;
+    const row = $(`
+      <tr data-pre="${escapeHtml(tabpreid)}">
+        <td>${escapeHtml(String(p.emprnom || ''))}</td>
+        <td class="text-monospace">${escapeHtml(tabpreid)}</td>
+        <td>${escapeHtml(String(nombre))}</td>
+        <td>
+          <input type="radio" name="precio-sel" class="form-check-input precio-radio">
+        </td>
+      </tr>
+    `);
+    row.find('input.precio-radio').prop('checked', tabpreid === selectedPre);
+
+    row.find('input.precio-radio').on('change', function () {
+      const current = getPrecioSeleccionado();
+      $('#btn-guardar-precios').prop('disabled', current === precioSeleccionInicial);
+    });
+
+    $tablaPreciosBody.append(row);
+  });
+}
+
+function getPrecioSeleccionado() {
+  let sel = '';
+  $tablaPreciosBody.find('tr').each(function () {
+    const checked = $(this).find('input.precio-radio').is(':checked');
+    if (checked) {
+      sel = String($(this).data('pre'));
+      return false;
+    }
+  });
+  return sel;
+}
+
+function guardarPrecioSeleccionado() {
+  const sel = getPrecioSeleccionado();
+  if (!sel) { warn('Debes seleccionar una lista de PRECIOS.'); return; }
+
+  $.ajax({
+    url: ENDPOINT_SAVE,
+    method: 'POST',
+    dataType: 'json',
+    data: {
+      codigo: PARAM_PRECIOS,
+      descripcion: 'Lista de PRECIOS habilitada (preid único)',
+      valor: sel
+    }
+  })
+  .done(function (resp) {
+    if (resp.statusCode === 200) {
+      ok('PRECIOS guardado correctamente.');
+      precioSeleccionInicial = sel;
+      $('#btn-guardar-precios').prop('disabled', true);
+    } else {
+      error(resp.mensaje || 'No se pudo guardar PRECIOS.');
+    }
+  })
+  .fail(function () {
+    error('Fallo al comunicarse con el servidor al guardar PRECIOS.');
   });
 }
 
@@ -461,3 +592,9 @@ function ok(msg)   { if (window.Swal) Swal.fire('Éxito',       msg, 'success');
 function info(msg) { if (window.Swal) Swal.fire('Información', msg, 'info');    else alert(msg); }
 function warn(msg) { if (window.Swal) Swal.fire('Atención',    msg, 'warning'); else alert(msg); }
 function error(msg){ if (window.Swal) Swal.fire('Error',       msg, 'error');   else alert(msg); }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"'`=\/]/g, function (c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[c];
+  });
+}
