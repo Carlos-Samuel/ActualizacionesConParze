@@ -27,7 +27,7 @@
               <span class="menu-icon">
                 <i class="fa fa-bookmark"></i>
               </span>
-              <span class="menu-title">Interfaz Parametrización</span>
+              <span class="menu-title">Parametrización</span>
             </a>
           </li>
 

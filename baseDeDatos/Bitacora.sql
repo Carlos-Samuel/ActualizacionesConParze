@@ -13,5 +13,5 @@ CREATE TABLE bitacora (
 		fecha_hora_de_fin TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora de finalización de la ejecucion', 
         satisfactorio BOOLEAN COMMENT 'TRUE = ejecucion satisfactoria, FALSE = ejecucion con errores',
 		ruta_archivo VARCHAR(255) COMMENT 'Ruta donde se almacena el archivo generado',
-		archivo_borrado BOOLEAN comment 'TRUE = archivo borrado despues de enviarse, FALSE = archivo no borrado'
+		archivo_borrado BOOLEAN DEFAULT FALSE comment 'TRUE = archivo borrado despues de enviarse, FALSE = archivo no borrado'
 )COMMENT 'Tabla que almacena la bitacora de ejecuciones del sistema';

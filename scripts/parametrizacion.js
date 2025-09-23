@@ -103,18 +103,20 @@ const PARAMS = [
   },
   {
     code: 'TIEMPO_ENTRE_REINTENTOS',
-    input: '#param-reintentos',
-    button: '#btn-guardar-reintentos',
-    desc: 'Número de reintentos automáticos',
+    input: '#param-tiempo-reintentos',
+    button: '#btn-guardar-tiempo-reintentos',
+    desc: 'Tiempo entre reintentos automáticos (minutos)',
     loadTransform: v => (v ?? '').toString().trim(),
     saveTransform: v => v.trim(),
     validate: (val) => {
-      if (val === '') return 'Debes ingresar el número de reintentos.';
+      if (val === '') return 'Debes ingresar el tiempo entre reintentos.';
       const n = Number(val);
-      if (!Number.isInteger(n) || n < 0) return 'Los reintentos deben ser un entero ≥ 0.';
+      if (!Number.isInteger(n)) return 'El tiempo entre reintentos debe ser un entero.';
+      if (n < 1 || n > 60) return 'El tiempo entre reintentos debe estar entre 1 y 60 minutos.';
       return null;
     }
-  }
+  },
+
 ];
 
 let empresasCache = [];

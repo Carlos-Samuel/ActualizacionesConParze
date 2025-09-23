@@ -66,6 +66,22 @@
                         <div class="form-text">Entero ≥ 0 (recomendado ≤ 10).</div>
                     </div>
 
+                    <!-- Tiempo entre reintentos (en minutos) -->
+                    <div class="mb-1">
+                        <label for="param-tiempo-reintentos" class="form-label fw-semibold">
+                            Tiempo entre reintentos automáticos (minutos)
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control"
+                                id="param-tiempo-reintentos"
+                                min="1" max="60" step="1"
+                                placeholder="1 a 60 minutos" />
+                            <button id="btn-guardar-tiempo-reintentos" class="btn btn-primary" disabled>Guardar</button>
+                        </div>
+                        <div class="form-text">Ingresa un valor entre 1 y 60 minutos.</div>
+                    </div>
+
+
                     <!-- Empresas (selección ÚNICA con radio) -->
                     <div class="mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-2">

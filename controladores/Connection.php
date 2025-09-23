@@ -1,5 +1,6 @@
 <?php
 
+    require_once 'bootstrap.php';
 
     class Connection {
         private static ?self $instance = null;
