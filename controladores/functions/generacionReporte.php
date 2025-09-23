@@ -441,6 +441,75 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
         registrar_paso($conParam, $id_bitacora, 'Termina generar csv con mode ' . $mode . ': ' . $csvFile . 
             " (total registros: " . count($current) . ", diffs: " . count($diffs) . ")");
         
+
+
+        // 8) Envío a API externa (cURL)
+        registrar_paso($conParam, $id_bitacora, 'Inicia envío a API externa: ' . $pUrl);
+
+        if (!is_file(EXPORT_DIR . '/' . $rutaArchivo)) {
+            throw new RuntimeException("No existe el archivo para envío: " . EXPORT_DIR . "/" . $rutaArchivo);
+        }
+
+        $ch = curl_init();
+        if ($ch === false) {
+            throw new RuntimeException("No se pudo inicializar cURL");
+        }
+
+        // Archivo a enviar como multipart/form-data
+        $cfile = new CURLFile(EXPORT_DIR . '/' . $rutaArchivo, 'text/csv', basename(EXPORT_DIR . '/' . $rutaArchivo));
+        $postFields = ['file_inventory' => $cfile];
+
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $pUrl,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $postFields,
+            CURLOPT_HTTPHEADER     => [
+                'Key: ' . $pApikey,
+            ],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_TIMEOUT        => 60,
+            CURLOPT_HEADER         => false,
+        ]);
+
+        $raw = curl_exec($ch);
+        $curlErrNo = curl_errno($ch);
+        $curlErr   = curl_error($ch);
+        $httpCode  = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        registrar_paso($conParam, $id_bitacora, "Respuesta API HTTP=$httpCode; curlErrNo=$curlErrNo");
+
+        if ($curlErrNo !== 0) {
+            throw new RuntimeException("Error cURL ($curlErrNo): $curlErr");
+        }
+
+        if ($httpCode !== 200) {
+            throw new RuntimeException("HTTP inesperado: $httpCode; body: " . mb_strimwidth((string)$raw, 0, 500, '...'));
+        }
+
+        $json = json_decode((string)$raw, true);
+        if (!is_array($json)) {
+            throw new RuntimeException("Respuesta no es JSON válido. Body: " . mb_strimwidth((string)$raw, 0, 500, '...'));
+        }
+
+        if (!array_key_exists('message', $json)) {
+            throw new RuntimeException("JSON sin 'message'. Body: " . mb_strimwidth((string)$raw, 0, 500, '...'));
+        }
+
+        $expected = "El inventario de tu sitio se está cargando.";
+        $message  = (string)$json['message'];
+
+        registrar_paso($conParam, $id_bitacora, "Mensaje API: " . mb_strimwidth($message, 0, 200, '...'));
+
+        if ($message !== $expected) {
+            throw new RuntimeException("Mensaje inesperado: '$message' (se esperaba: '$expected')");
+        }
+
+        registrar_paso($conParam, $id_bitacora, 'Validación de respuesta API OK; guardando snapshot y actualizando bitácora');
+
+        // 9) Persistir snapshot y actualizar bitácora como Exitoso
         guardarReportes($conParam, $id_bitacora, $current);
 
         $up = $conParam->prepare(
