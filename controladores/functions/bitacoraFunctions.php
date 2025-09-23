@@ -7,18 +7,15 @@ function conn(): mysqli {
     return ConnectionParametrizacion::getInstance()->getConnection();
 }
 
-function crear_bitacora(mysqli $cx, array $data = []): int {
-    $tipo          = $data['tipo_de_cargue'] ?? 'DELTA';
-    $origen        = $data['origen'] ?? 'Manual';
-    $cantidad      = (int)($data['cantidad'] ?? 0);
-    $resultado     = 'Proceso';
+function crear_bitacora(mysqli $cx, $tipo_de_cargue, $origen): int {
+    $resultado     = 'Iniciado el proceso';
     $satisfactorio = 0;
 
     $sql = "INSERT INTO bitacora (
                 tipo_de_cargue, fecha_ejecucion, hora_ejecucion, origen_del_proceso,
-                cantidad_registros_enviados, resultado_del_envio, satisfactorio
+                resultado_del_envio, satisfactorio
             ) VALUES (
-                ?, CURDATE(), CURTIME(), ?, ?, ?, ?
+                ?, CURDATE(), CURTIME(), ?, ?, ?
             )";
 
     $stmt = $cx->prepare($sql);
@@ -26,7 +23,7 @@ function crear_bitacora(mysqli $cx, array $data = []): int {
         throw new RuntimeException("Error prepare bitacora: " . $cx->error);
     }
 
-    $stmt->bind_param('ssisi', $tipo, $origen, $cantidad, $resultado, $satisfactorio);
+    $stmt->bind_param('sssi', $tipo_de_cargue, $origen, $resultado, $satisfactorio);
     if (!$stmt->execute()) {
         throw new RuntimeException("Error insert bitacora: " . $stmt->error);
     }
