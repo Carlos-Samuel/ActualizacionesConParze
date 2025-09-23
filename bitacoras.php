@@ -17,24 +17,20 @@
             </div>
             <main class="content">
                 <div class="card p-4 shadow mt-1">
-                    <div class=card p-4 shadow mt-1">
-                        <form id="formFechas">
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label for="fechaInicio" class="form-label">Fecha inicio</label>
-                                    <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="fechaFin" class="form-label">Fecha fin</label>
-                                    <input type="date" class="form-control" id="fechaFin" name="fechaFin" required>
-                                </div>
-                            </div>    
-                            <button type="submit" class="btn btn-primary">Procesar</button>
-                        </form>    
-                    </div>    
-                    <div id="subtotalVisual" class="mt-2 text-end pe-3 fs-5 text-primary fw-bold" style="display: none;">
-                        Subtotal: <span id="subtotalValor">0</span>
-                    </div>
+                    <form id="formFechas">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="fechaInicio" class="form-label">Fecha inicio</label>
+                                <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="fechaFin" class="form-label">Fecha fin</label>
+                                <input type="date" class="form-control" id="fechaFin" name="fechaFin" required>
+                            </div>
+                        </div>    
+                        <button type="submit" class="btn btn-primary">Procesar</button>
+                    </form>    
+                    <br>
                     <div id="contenedorTabla" class="mt-1" style="display: none;">
                         <table id="tabla-bitacoras" class="table table-bordered table-striped" style="width: 100%;">                        
                         

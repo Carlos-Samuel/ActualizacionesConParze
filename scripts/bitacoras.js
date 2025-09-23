@@ -142,7 +142,7 @@ function cargarTabla(datosFiltro) {
 
     tablaInicializada = true;
 
-});
+};
 
 function setupParam(def) {
   const $input = $(def.input);
@@ -180,7 +180,6 @@ $('#formFechas').on('submit', function(e) {
 
 });
 
-  }  
 
 function renderTablaBitacoras(bitacoras) {
   $tablaBitacorasBody.empty();
