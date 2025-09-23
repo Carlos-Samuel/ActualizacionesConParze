@@ -29,33 +29,31 @@
                             </div>
                         </div>    
                         <button type="submit" class="btn btn-primary">Procesar</button>
+                        <button type="button" id="btnBorrarRango" class="btn btn-danger ms-2">
+                            Borrar archivos en este rango
+                        </button>
                     </form>    
                     <br>
                     <div id="contenedorTabla" class="mt-1" style="display: none;">
-                        <table id="tabla-bitacoras" class="table table-bordered table-striped" style="width: 100%;">                        
-                        
+                        <table id="tabla-bitacoras" class="table table-bordered table-striped" style="width: 100%;">                                                
                             <thead>
                                 <tr>
-                                <th>ID</th>   
-                                <th>Tipo</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Origen</th>
-                                <th>No.Reg.</th>
-                                <th>Tamaño</th>
-                                <th>Resultado</th>
-                                <th>Mensaje de Error </th>
-                                <th>Parametros</th>
-                                <th>Inicio</th>
-                                <th>Final</th>
-                                <th>Ruta Archivo</th>
-                                <th>Archivo Borrado</th>
-                            </tr>
+                                    <th>ID</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Origen</th>
+                                    <th>No.Reg.</th>
+                                    <th>Tamaño</th>
+                                    <th>Resultado</th>
+                                    <th>Mensaje de Error</th>
+                                    <th>Parametros</th>
+                                    <th>Inicio</th>
+                                    <th>Final</th>
+                                    <th>Archivo</th>
+                                </tr>
                             </thead>
-                            <tbody>
-                            </tbody>
-                            </table>
-                        </div>
+                        </table>
                     </div>
                 </div>
             </main>

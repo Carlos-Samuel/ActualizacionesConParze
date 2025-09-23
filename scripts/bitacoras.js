@@ -2,6 +2,15 @@
 
 let tablaInicializada = false;
 
+function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+}
+
 function cargarTabla(datosFiltro) {
     if (tablaInicializada) {
         $('#tabla-bitacoras').DataTable().clear().destroy();
@@ -11,159 +20,118 @@ function cargarTabla(datosFiltro) {
 
     $('#tabla-bitacoras').DataTable({
         scrollX: true,
-        scrollY: '60vh',
+        scrollY: '50vh',
         scrollCollapse: true,
-        scrollX: true,
         fixedHeader: true,
-        dom: '<"row align-items-center mb-2"' +
-                '<"col-sm-4"l>' +       // Mostrar X registros
-                '<"col-sm-4 text-center"B>' + // Botones de exportar
-                '<"col-sm-4 text-end"f>' +    // Filtro de búsqueda
-            '>' +
-            '<"row"<"col-sm-12"tr>>' +       // Tabla
-            '<"row mt-2"' +
-                '<"col-sm-6"i>' +       // Información ("Mostrando de X a Y")
-                '<"col-sm-6 text-end"p>' +  // Paginación
-            '>',
+        deferRender: true,
         ajax: {
             url: 'controladores/listarBitacoras.php',
             type: 'POST',
-            data: datosFiltro
+            data: datosFiltro,
+            dataSrc: function (json) {
+                if (Array.isArray(json)) return json;
+                if (json && Array.isArray(json.data)) return json.data;
+                    console.error('Formato JSON inesperado:', json);
+                    return [];
+                },
+            error: function (xhr, status, err) {
+                console.error('Error AJAX:', status, err, xhr?.responseText);
+            }
         },
         columns: [
-            { data: 'id_bitacora' },
-            { data: 'tipo_de_cargue' },
-            { data: 'fecha_ejecucion' },
-            { data: 'hora_ejecucion' },
-            { data: 'origen_del_proceso' },
-            { data: 'cantidad_registros_enviados' },
-            { data: 'tamaño_del_archivo' },
-            { data: 'resultado_del_envio' },
-            { data: 'descripcion_error' },
-            { data: 'parametros_usados' },
-            { data: 'fecha_hora_de_inicio' },
-            { data: 'fecha_hora_de_fin' },
-            { data: 'ruta_archivo' },
-            { data: 'archivo_borrado' }
-        ],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-        },
-        buttons: [
+            { data: 'id_bitacora',              render: $.fn.dataTable.render.text() },
+            { data: 'tipo_de_cargue',           render: $.fn.dataTable.render.text() },
+            { data: 'fecha_ejecucion',          render: $.fn.dataTable.render.text() },
+            { data: 'hora_ejecucion',           render: $.fn.dataTable.render.text() },
+            { data: 'origen_del_proceso',       render: $.fn.dataTable.render.text() },
+            { data: 'cantidad_registros_enviados', render: $.fn.dataTable.render.text() },
+            { data: 'tamaño_del_archivo',       render: $.fn.dataTable.render.text() },
+            { data: 'resultado_del_envio',      render: $.fn.dataTable.render.text() },
+            { data: 'descripcion_error',        render: $.fn.dataTable.render.text() },
+            { data: 'parametros_usados',        render: $.fn.dataTable.render.text() },
+            { data: 'fecha_hora_de_inicio',     render: $.fn.dataTable.render.text() },
+            { data: 'fecha_hora_de_fin',        render: $.fn.dataTable.render.text() },
             {
-                extend: 'excelHtml5',
-                text: '<i class="fa fa-file-excel"></i> Exportar a Excel',
-                title: null,
-                className: 'btn btn-success',
-                exportOptions: {
-                columns: ':visible'
-                },
-                customize: function (xlsx) {
-                    const sheet = xlsx.xl.worksheets['sheet1.xml'];
-                    const sheetData = sheet.getElementsByTagName('sheetData')[0];
-                    const doc = sheetData.ownerDocument;
+            data: null,
+            orderable: false,
+            searchable: false,
+            render: function (data, type, row) {
+                const ruta    = (row.ruta_archivo ?? '').trim();
+                const borrado = Number(row.archivo_borrado) === 1;
 
-                    const getMultipleTexts = (selector) => {
-                        return $(selector).select2('data').map(item => item.text.trim()).join(', ') || 'Todos';
-                    };
-
-                    const info = [
-                        `Fecha Inicial: ${$('#fechaInicio').val() || ''}`,
-                        `Fecha Final: ${$('#fechaFin').val() || ''}`
-                    ];
-
-                    // Desplaza filas existentes
-                    const existingRows = sheetData.getElementsByTagName('row');
-                    for (let i = 0; i < existingRows.length; i++) {
-                        const row = existingRows[i];
-                        const oldR = parseInt(row.getAttribute('r'), 10);
-                        row.setAttribute('r', oldR + info.length);
-
-                        const cells = row.getElementsByTagName('c');
-                        for (let j = 0; j < cells.length; j++) {
-                            const cell = cells[j];
-                            const ref = cell.getAttribute('r');
-                            if (ref) {
-                                const col = ref.replace(/[0-9]/g, '');
-                                cell.setAttribute('r', col + (oldR + info.length));
-                            }
-                        }
-                    }
-
-                    // Inserta nuevas filas
-                    for (let i = info.length - 1; i >= 0; i--) {
-                        const row = doc.createElement('row');
-                        row.setAttribute('r', i + 1);
-
-                        const cell = doc.createElement('c');
-                        cell.setAttribute('t', 'inlineStr');
-                        cell.setAttribute('r', 'A' + (i + 1));
-
-                        const is = doc.createElement('is');
-                        const t = doc.createElement('t');
-                        t.textContent = info[i] || '';
-
-                        is.appendChild(t);
-                        cell.appendChild(is);
-                        row.appendChild(cell);
-
-                        sheetData.insertBefore(row, sheetData.firstChild);
-                    }
-
-                    // Ajusta la dimensión de la hoja
-                    const dimension = sheet.getElementsByTagName('dimension')[0];
-                    if (dimension) {
-                        dimension.setAttribute('ref', `A1:Z${existingRows.length + info.length}`);
-                    }
+                if (borrado) {
+                return '<span class="text-danger" title="Archivo borrado"><i class="fa fa-trash"></i></span>';
                 }
-
-
+                if (ruta) {
+                const safeUrl = 'exports/' + encodeURIComponent(ruta);
+                return `<a class="btn btn-sm btn-outline-primary"
+                            href="${esc(safeUrl)}"
+                            title="Descargar" target="_blank" rel="noopener">
+                            <i class="fa fa-download"></i>
+                        </a>`;
+                }
+                return '<span class="text-muted" title="Sin archivo"></span>';
+            }
             }
         ],
-        drawCallback: function (settings) {
-            let api = this.api();
-            let data = api.rows({ page: 'all' }).data();
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' }
+        });
 
-            let total = 0;
-            for (let i = 0; i < data.length; i++) {
-                let val = parseFloat(data[i].subtotal);
-                if (!isNaN(val)) {
-                    total += val;
-                }
-            }
-        }
-
-
-    });
 
     tablaInicializada = true;
 
 };
 
-function setupParam(def) {
-  const $input = $(def.input);
-  const $btn   = $(def.button);
+$('#btnBorrarRango').on('click', function () {
+  const fechaInicio = $('#fechaInicio').val();
+  const fechaFin    = $('#fechaFin').val();
 
-  let initial = '';
+  if (!fechaInicio || !fechaFin) {
+    alert('Por favor selecciona el rango de fechas.');
+    return;
+  }
 
-}
+  if (!confirm(`Se eliminarán los archivos físicos (si existen) con fecha entre ${fechaInicio} y ${fechaFin}, y se marcarán como borrados en la bitácora. ¿Continuar?`)) {
+    return;
+  }
 
-function safe(val) {
-  if (val === null || val === undefined) return '';
-  return escapeHtml(String(val));
-}
+  const $btn = $(this);
+  $btn.prop('disabled', true).text('Borrando...');
 
+  $.ajax({
+    url: 'controladores/borrarArchivos.php',
+    type: 'POST',
+    dataType: 'json',
+    data: { fechaInicio, fechaFin },
+  })
+  .done(function (resp) {
+    if (resp && resp.ok) {
+      const msg = [
+        `Total en rango: ${resp.total ?? 0}`,
+        `Borrados físicamente: ${resp.borrados ?? 0}`,
+        `No encontrados: ${resp.no_encontrados ?? 0}`,
+        `Errores: ${resp.errores ?? 0}`
+      ].join('\n');
+      alert('Proceso completado:\n' + msg);
 
-function getSeleccionActualComoSet() {
-  const set = new Set();
-  $tablaGruposBody.find('tr').each(function () {
-    const cod = $(this).data('cod');
-    const val = $(this).find('select.grp-sel').val();
-    if (val === 'SI') set.add(String(cod));
+      // recargar el DataTable si ya está inicializado
+      if ($.fn.DataTable.isDataTable('#tabla-bitacoras')) {
+        $('#tabla-bitacoras').DataTable().ajax.reload(null, false);
+      }
+    } else {
+      console.error('Respuesta inesperada:', resp);
+      alert('Ocurrió un problema al borrar. Revisa la consola.');
+    }
+  })
+  .fail(function (xhr, status, err) {
+    console.error('Error al borrar:', status, err, xhr?.responseText);
+    alert('Fallo la operación de borrado. Revisa la consola para más detalles.');
+  })
+  .always(function () {
+    $btn.prop('disabled', false).text('Borrar archivos en este rango');
   });
-  return set;
+});
 
-}
 
 $('#formFechas').on('submit', function(e) {
     e.preventDefault();
@@ -173,20 +141,6 @@ $('#formFechas').on('submit', function(e) {
     });
 
 });
-
-
-function getSeleccionbitacorasActualComoSet() {
-   
-  const set = new Set();
-  $tablaBitacorasBody.find('tr').each(function () {
-    const cod = $(this).data('subid');
-    const val = $(this).find('input.sub-des').val();
-     
-    if ( val > 0 && val <= 100) set.add(`${cod}:${val}`);
-  });
-   
-  return set;
-}
 
 
 $(document).ready(function () {
