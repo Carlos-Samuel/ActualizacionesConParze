@@ -9,7 +9,8 @@ $registroPath = __DIR__ . '/estado_ejecucion.json';
 // Fecha y hora actual
 $ahora = new DateTime();
 $fechaActual = $ahora->format('Y-m-d');
-$horaActual = (int)$ahora->format('G');
+$horaActual = (int)$ahora->format('G'); 
+$horaActualFormateada = $ahora->format('H') . ':00:00'; // Ejemplo: "03:00:00" 
 $claveActual = $ahora->format('Y-m-d-G'); // Ejemplo: "2025-09-19-03"
 
 // Verificar si es hora válida (múltiplo de $horasReporte)
@@ -80,6 +81,7 @@ echo $exito
 // Simulación del proceso (reemplaza con tu lógica real)
 function ejecutarProceso() {
     // Simula éxito o fallo aleatorio
+    // gestorGerador
     return rand(0, 1) === 1;
 }
 ?>
