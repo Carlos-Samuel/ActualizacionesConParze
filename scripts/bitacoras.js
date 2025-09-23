@@ -131,10 +131,6 @@ function cargarTabla(datosFiltro) {
                     total += val;
                 }
             }
-
-            // Mostrar y formatear
-           // $('#subtotalVisual').show();
-           // $('#subtotalValor').text(total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }));
         }
 
 
@@ -169,8 +165,6 @@ function getSeleccionActualComoSet() {
 
 }
 
-
-
 $('#formFechas').on('submit', function(e) {
     e.preventDefault();
     cargarTabla({
@@ -180,35 +174,6 @@ $('#formFechas').on('submit', function(e) {
 
 });
 
-
-function renderTablaBitacoras(bitacoras) {
-  $tablaBitacorasBody.empty();
-   
-  bitacoras.forEach(s => {
-
-    const row = $(`
-      <tr data-bitacora="${safe(s.id_bitacora)}">
-        <td class="text-monospace">${safe(s.id_bitacora)}</td>
-        <td>${safe(s.tipo_de_cargue)}</td>
-        <td class="text-monospace">${safe(s.fecha_ejecucion)}</td>
-        <td>${safe(s.hora_ejecucion)}</td>
-        <td>${safe(s.origen_del_proceso)}</td>
-        <td>${safe(s.cantidad_registros_enviados)}</td>
-        <td>${safe(s.tamaño_del_archivo)}</td>
-        <td>${safe(s.resultado_del_envio)}</td>
-        <td>${safe(s.descripcion_error)}</td>
-        <td>${safe(s.parametros_usados)}</td>
-        <td>${safe(s.fecha_hora_de_inicio)}</td>
-        <td>${safe(s.fecha_hora_de_fin)}</td>
-        <td>${safe(s.ruta_archivo)}</td>
-        <td>${s.archivo_borrado == 1 ? 'Sí' : 'No'}</td>
-      </tr>
-    `);
-
-
-    $tablaBitacorasBody.append(row);
-  });
-}
 
 function getSeleccionbitacorasActualComoSet() {
    

@@ -38,18 +38,18 @@
                                 <tr>
                                 <th>ID</th>   
                                 <th>Tipo</th>
-                                <th style="width:160px;">Fecha</th>
+                                <th>Fecha</th>
                                 <th>Hora</th>
-                                <th style="width:100px;">Origen</th>
+                                <th>Origen</th>
                                 <th>No.Reg.</th>
-                                <th style="width:200px;">Tamaño</th>
-                                <th style="width:200px;">Resultado</th>
-                                <th style="width:300px;">Mensaje de Error </th>
+                                <th>Tamaño</th>
+                                <th>Resultado</th>
+                                <th>Mensaje de Error </th>
                                 <th>Parametros</th>
-                                <th style="width:200px;">Inicio</th>
-                                <th style="width:200px;">Final</th>
-                                <th style="width:300px;">Ruta Archivo</th>
-                                <th style="width:100px;">Archivo Borrado</th>
+                                <th>Inicio</th>
+                                <th>Final</th>
+                                <th>Ruta Archivo</th>
+                                <th>Archivo Borrado</th>
                             </tr>
                             </thead>
                             <tbody>
