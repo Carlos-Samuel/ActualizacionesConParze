@@ -1,26 +1,146 @@
-// scripts/parametrizacion.js
-// Requiere jQuery y opcionalmente SweetAlert2 (Swal)
 
-const ENDPOINT_LISTAR_BITACORAS = 'controladores/listarBitacoras.php';
 
-// Definición de parámetros y reglas  SE QUITAN TODOS 
-const PARAMS = [];
+let tablaInicializada = false;
 
-let bitacoraSeleccionInicialNorm = '';
-let bitacoraCache = []; 
-let $tablaBitacorasBody = null;
+function cargarTabla(datosFiltro) {
+    if (tablaInicializada) {
+        $('#tabla-bitacoras').DataTable().clear().destroy();
+    }
 
-$(document).ready(function () {
-    PARAMS.forEach(setupParam);
-   
-    $tablaBitacorasBody = $('#tabla-bitacoras tbody');
+    $('#contenedorTabla').show();
 
-    
-    cargarBitacorasYSeleccion();
+    $('#tabla-bitacoras').DataTable({
+        scrollX: true,
+        scrollY: '60vh',
+        scrollCollapse: true,
+        scrollX: true,
+        fixedHeader: true,
+        dom: '<"row align-items-center mb-2"' +
+                '<"col-sm-4"l>' +       // Mostrar X registros
+                '<"col-sm-4 text-center"B>' + // Botones de exportar
+                '<"col-sm-4 text-end"f>' +    // Filtro de búsqueda
+            '>' +
+            '<"row"<"col-sm-12"tr>>' +       // Tabla
+            '<"row mt-2"' +
+                '<"col-sm-6"i>' +       // Información ("Mostrando de X a Y")
+                '<"col-sm-6 text-end"p>' +  // Paginación
+            '>',
+        ajax: {
+            url: 'controladores/listarBitacoras.php',
+            type: 'POST',
+            data: datosFiltro
+        },
+        columns: [
+            { data: 'id_bitacora' },
+            { data: 'tipo_de_cargue' },
+            { data: 'fecha_ejecucion' },
+            { data: 'hora_ejecucion' },
+            { data: 'origen_del_proceso' },
+            { data: 'cantidad_registros_enviados' },
+            { data: 'tamaño_del_archivo' },
+            { data: 'resultado_del_envio' },
+            { data: 'descripcion_error' },
+            { data: 'parametros_usados' },
+            { data: 'fecha_hora_de_inicio' },
+            { data: 'fecha_hora_de_fin' },
+            { data: 'ruta_archivo' },
+            { data: 'archivo_borrado' }
+        ],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        },
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fa fa-file-excel"></i> Exportar a Excel',
+                title: null,
+                className: 'btn btn-success',
+                exportOptions: {
+                columns: ':visible'
+                },
+                customize: function (xlsx) {
+                    const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                    const sheetData = sheet.getElementsByTagName('sheetData')[0];
+                    const doc = sheetData.ownerDocument;
 
-    $('#btn-guardar-bitacoras').on('click', function () {
-        guardarbitacorasSeleccionadas();
+                    const getMultipleTexts = (selector) => {
+                        return $(selector).select2('data').map(item => item.text.trim()).join(', ') || 'Todos';
+                    };
+
+                    const info = [
+                        `Fecha Inicial: ${$('#fechaInicio').val() || ''}`,
+                        `Fecha Final: ${$('#fechaFin').val() || ''}`
+                    ];
+
+                    // Desplaza filas existentes
+                    const existingRows = sheetData.getElementsByTagName('row');
+                    for (let i = 0; i < existingRows.length; i++) {
+                        const row = existingRows[i];
+                        const oldR = parseInt(row.getAttribute('r'), 10);
+                        row.setAttribute('r', oldR + info.length);
+
+                        const cells = row.getElementsByTagName('c');
+                        for (let j = 0; j < cells.length; j++) {
+                            const cell = cells[j];
+                            const ref = cell.getAttribute('r');
+                            if (ref) {
+                                const col = ref.replace(/[0-9]/g, '');
+                                cell.setAttribute('r', col + (oldR + info.length));
+                            }
+                        }
+                    }
+
+                    // Inserta nuevas filas
+                    for (let i = info.length - 1; i >= 0; i--) {
+                        const row = doc.createElement('row');
+                        row.setAttribute('r', i + 1);
+
+                        const cell = doc.createElement('c');
+                        cell.setAttribute('t', 'inlineStr');
+                        cell.setAttribute('r', 'A' + (i + 1));
+
+                        const is = doc.createElement('is');
+                        const t = doc.createElement('t');
+                        t.textContent = info[i] || '';
+
+                        is.appendChild(t);
+                        cell.appendChild(is);
+                        row.appendChild(cell);
+
+                        sheetData.insertBefore(row, sheetData.firstChild);
+                    }
+
+                    // Ajusta la dimensión de la hoja
+                    const dimension = sheet.getElementsByTagName('dimension')[0];
+                    if (dimension) {
+                        dimension.setAttribute('ref', `A1:Z${existingRows.length + info.length}`);
+                    }
+                }
+
+
+            }
+        ],
+        drawCallback: function (settings) {
+            let api = this.api();
+            let data = api.rows({ page: 'all' }).data();
+
+            let total = 0;
+            for (let i = 0; i < data.length; i++) {
+                let val = parseFloat(data[i].subtotal);
+                if (!isNaN(val)) {
+                    total += val;
+                }
+            }
+
+            // Mostrar y formatear
+           // $('#subtotalVisual').show();
+           // $('#subtotalValor').text(total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }));
+        }
+
+
     });
+
+    tablaInicializada = true;
 
 });
 
@@ -46,54 +166,19 @@ function getSeleccionActualComoSet() {
     if (val === 'SI') set.add(String(cod));
   });
   return set;
-}
 
-// ===== utilidades selección =====
-function parseSeleccionToSet(valorStr) {
-  return new Set(
-    String(valorStr)
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-  );
-}
-function normalizeSeleccion(set) {
-  
-  return Array.from(set).sort().join(';'); // normaliza para comparar cambios
-}
-function escapeHtml(s) {
-  return s.replace(/[&<>"'`=\/]/g, function (c) {
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[c];
-  });
 }
 
 
-function cargarBitacorasYSeleccion() {
-    // 2) Listar bodegas asignadas a empresa
-    $.ajax({
-      url: ENDPOINT_LISTAR_BITACORAS,
-      method: 'POST',
-      dataType: 'json', 
-      data: { fecha_ejecucion_ini: "2025-01-01",
-              fecha_ejecucion_fin: Date()
-       }
-      
-    })
-    .done(function (resp) {
-      // borrar console
-      console.log('Respuesta del listado de bitacoras:', resp);
-      if (resp.statusCode === 200 && Array.isArray(resp.bitacoras)) {
 
-        bitacorasCache = resp.bitacoras; // [{subcod, subnom, grpcod, grpnom}]
-        renderTablaBitacoras(bitacorasCache);
-        $('#btn-guardar-descuentos').prop('disabled', true);
-      } else {
-        error(resp.mensaje || 'No se pudieron cargar los bitacoras.');
-      }
-    })
-    .fail(function () {
-      error('Fallo al comunicarse con el servidor al listar bitacoras.');
+$('#formFechas').on('submit', function(e) {
+    e.preventDefault();
+    cargarTabla({
+        fechaInicio: $('#fechaInicio').val(),
+        fechaFin: $('#fechaFin').val()
     });
+
+});
 
   }  
 
@@ -140,9 +225,17 @@ function getSeleccionbitacorasActualComoSet() {
 }
 
 
+$(document).ready(function () {
+    const fechaActual = new Date();
+    const primerDiaMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
 
-// Notificaciones
-function ok(msg)   { if (window.Swal) Swal.fire('Éxito',       msg, 'success'); else alert(msg); }
-function info(msg) { if (window.Swal) Swal.fire('Información', msg, 'info');    else alert(msg); }
-function warn(msg) { if (window.Swal) Swal.fire('Atención',    msg, 'warning'); else alert(msg); }
-function error(msg){ if (window.Swal) Swal.fire('Error',       msg, 'error');   else alert(msg); }
+    function formatear(fecha) {
+        const anio = fecha.getFullYear();
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        return `${anio}-${mes}-${dia}`;
+    }
+
+    $('#fechaInicio').val(formatear(primerDiaMes));
+    $('#fechaFin').val(formatear(fechaActual));
+});

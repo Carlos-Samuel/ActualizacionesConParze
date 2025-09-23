@@ -28,14 +28,14 @@ function setupBitacora(def) {
     dataType: 'json',
     data: { 
             tipo_de_cargue: 'FULL' ,
-            fecha_ejecucion: "2025-01-01",
+            fecha_ejecucion: "2025-09-01",
             hora_ejecucion: "12:00:00",
             origen_del_proceso: 'Manual',
             cantidad_registros_enviados: 15,
-            tamaño_del_archivo: '3M',
+            tamaño_del_archivo: '5M',
             resultado_del_envio: '',
-            descripcion_error: 'todo bien',
-            parametros_usados: 'casi nada',   
+            descripcion_error: '',
+            parametros_usados: '',   
             satisfactorio: 0,
             ruta_archivo: 'via/pruebas.txt',
             archivo_borrado: 0 
