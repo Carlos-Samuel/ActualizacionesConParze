@@ -13,7 +13,9 @@ mysqli_report(MYSQLI_REPORT_OFF);
    ======================= */
 
 
-const DBF_PATH     = "C:\\Users\\csamu\\OneDrive\\Escritorio\\Parze\\PRODEXIS.DBF";
+const DBF_PATH     = "C:\\Users\\rapar\\OneDrive\\Emprendimiento\\PROYECTOS\\Actualización inventario API\\Parze\\PRODEXIS.DBF";
+ //"C:\\Users\\csamu\\OneDrive\\Escritorio\\Parze\\PRODEXIS.DBF";
+ //"C:\\Users\\rapar\\OneDrive\\Emprendimiento\\PROYECTOS\\Actualización inventario API\\Parze
 const DBF_ENCODING = 'CP1252';
 
 const PARAM_BODEGAS   = '';

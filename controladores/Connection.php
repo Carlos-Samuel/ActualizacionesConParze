@@ -7,7 +7,8 @@
             $host = "localhost";
             $username = "root";
             $password = "";
-            $database = "maxcampo";
+            $database = "agrogranada";
+            //"maxcampo";
 
             $this->connection = new mysqli($host, $username, $password, $database);
 
