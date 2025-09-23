@@ -66,56 +66,84 @@
                         <div class="form-text">Entero ≥ 0 (recomendado ≤ 10).</div>
                     </div>
 
-                    <!-- Empresas seleccionadas (tabla con select Sí/No) -->
+                    <!-- Empresas (selección ÚNICA con radio) -->
                     <div class="mb-2">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="form-label fw-semibold m-0">Empresas habilitadas para proceso</label>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped align-middle" id="tabla-empresas">
-                                <thead class="table-light">
-                                    <tr>
-                                    <th style="width:120px;">Código</th>
-                                    <th>Empresa</th>
-                                    <th style="width:160px;">Seleccionada</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="text-end mt-2">
-                            <button id="btn-guardar-empresas" class="btn btn-primary" disabled>Guardar selección de empresas</button>
-                        </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label fw-semibold m-0">Empresa habilitada</label>
                     </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle" id="tabla-empresas">
+                        <thead class="table-light">
+                            <tr>
+                            <th style="width:120px;">Código</th>
+                            <th>Empresa</th>
+                            <th style="width:160px;">Seleccionar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-end mt-2">
+                        <button id="btn-guardar-empresas" class="btn btn-primary" disabled>Guardar empresa</button>
+                    </div>
+                    </div>
+
                     <br>
-                    <!-- Bodegas seleccionadas (tabla con select Sí/No) -->
+
+                    <!-- Bodegas (selección ÚNICA con radio, filtradas por empresa) -->
                     <div class="mb-2">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <label class="form-label fw-semibold m-0">Bodegas habilitadas</label>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped align-middle" id="tabla-bodegas">
-                            <thead class="table-light">
-                                <tr>
-                                <th style="width:240px;">Empresa</th>
-                                <th style="width:120px;">BodCod</th>
-                                <th>Bodega</th>
-                                <th style="width:160px;">Seleccionada</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                            </table>
-                        </div>
-
-                        <div class="text-end mt-2">
-                            <button id="btn-guardar-bodegas" class="btn btn-primary" disabled>Guardar selección de bodegas</button>
-                        </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label fw-semibold m-0">Bodega habilitada</label>
                     </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle" id="tabla-bodegas">
+                        <thead class="table-light">
+                            <tr>
+                            <th style="width:240px;">Empresa</th>
+                            <th style="width:120px;">BodCod</th>
+                            <th>Bodega</th>
+                            <th style="width:160px;">Seleccionar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-end mt-2">
+                        <button id="btn-guardar-bodegas" class="btn btn-primary" disabled>Guardar bodega</button>
+                    </div>
+                    </div>
+
+                    <br>
+
+                    <!-- PRECIOS (selección ÚNICA con radio, filtrados por empresa) -->
+                    <div class="mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label fw-semibold m-0">Lista de PRECIOS habilitada</label>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle" id="tabla-precios">
+                        <thead class="table-light">
+                            <tr>
+                            <th style="width:240px;">Empresa</th>
+                            <th style="width:120px;">PreId</th>
+                            <th>Nombre precio</th>
+                            <th style="width:160px;">Seleccionar</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-end mt-2">
+                        <button id="btn-guardar-precios" class="btn btn-primary" disabled>Guardar PRECIOS</button>
+                    </div>
+                    </div>
+
 
 
 

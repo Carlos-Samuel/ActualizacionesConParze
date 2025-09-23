@@ -40,26 +40,29 @@
                         
                             <thead>
                                 <tr>
-                                    <th>ID</th>   
-                                    <th>Tipo</th>
-                                    <th style="width:160px;">Fecha</th>
-                                    <th>Hora</th>
-                                    <th style="width:100px;">Origen</th>
-                                    <th>No.Reg.</th>
-                                    <th style="width:200px;">Tamaño</th>
-                                    <th style="width:200px;">Resultado</th>
-                                    <th style="width:300px;">Mensaje de Error </th>
-                                    <th >Parametros</th>
-                                    <th style="width:200px;">Time Inicio</th>
-                                    <th style="width:200px;">Time Fin</th>
-                                    <th style="width:100px;">Satisfactorio</th>
-                                    <th style="width:300px;">Ruta Archivo</th>
-                                    <th style="width:100px;">Archivo Borrado</th>
-                                </tr>
+                                <th>ID</th>   
+                                <th>Tipo</th>
+                                <th style="width:160px;">Fecha</th>
+                                <th>Hora</th>
+                                <th style="width:100px;">Origen</th>
+                                <th>No.Reg.</th>
+                                <th style="width:200px;">Tamaño</th>
+                                <th style="width:200px;">Resultado</th>
+                                <th style="width:300px;">Mensaje de Error </th>
+                                <th>Parametros</th>
+                                <th style="width:200px;">Inicio</th>
+                                <th style="width:200px;">Final</th>
+                                <th style="width:300px;">Ruta Archivo</th>
+                                <th style="width:100px;">Archivo Borrado</th>
+                            </tr>
                             </thead>
-                        </table>
+                            <tbody>
+                            </tbody>
+                            </table>
+                        </div>
                     </div>
-                </main>
+                </div>
+            </main>
         </div>
     </div>
 

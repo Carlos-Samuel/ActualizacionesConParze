@@ -8,8 +8,8 @@ try {
     $con = Connection::getInstance()->getConnection();
     $connParametrizacion = ConnectionParametrizacion::getInstance()->getConnection();
 
-    // 1) Obtener el parámetro EMPRESAS_SELECCIONADAS (emprcod separados por ;)
-    $codigoParam = 'EMPRESAS_SELECCIONADAS';
+    // 1) Obtener el parámetro EMPRESA (emprcod separados por ;)
+    $codigoParam = 'EMPRESA';
     $stmtParam = $connParametrizacion->prepare("SELECT valor 
                                 FROM parametros 
                                 WHERE codigo = ? AND vigente = TRUE 

@@ -43,7 +43,6 @@ function cargarTabla(datosFiltro) {
             { data: 'parametros_usados' },
             { data: 'fecha_hora_de_inicio' },
             { data: 'fecha_hora_de_fin' },
-            { data: 'satisfactorio' },
             { data: 'ruta_archivo' },
             { data: 'archivo_borrado' }
         ],
@@ -142,6 +141,32 @@ function cargarTabla(datosFiltro) {
     });
 
     tablaInicializada = true;
+
+});
+
+function setupParam(def) {
+  const $input = $(def.input);
+  const $btn   = $(def.button);
+
+  let initial = '';
+
+}
+
+function safe(val) {
+  if (val === null || val === undefined) return '';
+  return escapeHtml(String(val));
+}
+
+
+function getSeleccionActualComoSet() {
+  const set = new Set();
+  $tablaGruposBody.find('tr').each(function () {
+    const cod = $(this).data('cod');
+    const val = $(this).find('select.grp-sel').val();
+    if (val === 'SI') set.add(String(cod));
+  });
+  return set;
+
 }
 
 
@@ -154,6 +179,51 @@ $('#formFechas').on('submit', function(e) {
     });
 
 });
+
+  }  
+
+function renderTablaBitacoras(bitacoras) {
+  $tablaBitacorasBody.empty();
+   
+  bitacoras.forEach(s => {
+
+    const row = $(`
+      <tr data-bitacora="${safe(s.id_bitacora)}">
+        <td class="text-monospace">${safe(s.id_bitacora)}</td>
+        <td>${safe(s.tipo_de_cargue)}</td>
+        <td class="text-monospace">${safe(s.fecha_ejecucion)}</td>
+        <td>${safe(s.hora_ejecucion)}</td>
+        <td>${safe(s.origen_del_proceso)}</td>
+        <td>${safe(s.cantidad_registros_enviados)}</td>
+        <td>${safe(s.tamaño_del_archivo)}</td>
+        <td>${safe(s.resultado_del_envio)}</td>
+        <td>${safe(s.descripcion_error)}</td>
+        <td>${safe(s.parametros_usados)}</td>
+        <td>${safe(s.fecha_hora_de_inicio)}</td>
+        <td>${safe(s.fecha_hora_de_fin)}</td>
+        <td>${safe(s.ruta_archivo)}</td>
+        <td>${s.archivo_borrado == 1 ? 'Sí' : 'No'}</td>
+      </tr>
+    `);
+
+
+    $tablaBitacorasBody.append(row);
+  });
+}
+
+function getSeleccionbitacorasActualComoSet() {
+   
+  const set = new Set();
+  $tablaBitacorasBody.find('tr').each(function () {
+    const cod = $(this).data('subid');
+    const val = $(this).find('input.sub-des').val();
+     
+    if ( val > 0 && val <= 100) set.add(`${cod}:${val}`);
+  });
+   
+  return set;
+}
+
 
 $(document).ready(function () {
     const fechaActual = new Date();
