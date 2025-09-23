@@ -1,14 +1,13 @@
 <?php
 require 'vendor/autoload.php';
 
+require_once 'controladores/bootstrap.php';
+
 use XBase\TableReader;
 
 try {
-    // Ruta al archivo DBF
-    $ruta = "C:\\Users\\csamu\\OneDrive\\Escritorio\\Parze\\PRODEXIS.DBF";
-
     // Abrir la tabla (ajusta la codificación si es necesario)
-    $tabla = new TableReader($ruta, [
+    $tabla = new TableReader(DBF_PATH, [
         'encoding' => 'CP1252'
     ]);
 
