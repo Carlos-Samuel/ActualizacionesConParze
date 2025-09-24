@@ -4,15 +4,15 @@ header('Content-Type: application/json');
 
 require_once 'ConnectionParametrizacion.php';
 
-function obtenerBitacora($fecha_ejecucion, $hora_ejecucion, $tipo_de_cargue) {
+function obtenerBitacora($fecha_ejecucion, $hora_ejecucion): bool {
     $con = ConnectionParametrizacion::getInstance()->getConnection();
 
     $stmt1 = $con->prepare("SELECT *
                             FROM bitacora  
-                            WHERE fecha_ejecucion = ? AND hora_ejecucion = ? AND tipo_de_cargue = ? AND origen_del_proceso <> 'Manual'
-                            ORDER BY id_bitacora DESC");
+                            WHERE fecha_ejecucion = ? AND hora_ejecucion = ? AND origen_del_proceso <> 'Manual'
+                            ");
 
-    $stmt1->bind_param("sss", $fecha_ejecucion, $hora_ejecucion, $tipo_de_cargue ); 
+    $stmt1->bind_param("ss", $fecha_ejecucion, $hora_ejecucion ); 
     $stmt1->execute();
     $result = $stmt1->get_result();
     if ($result && $result->num_rows > 0) {
@@ -58,10 +58,12 @@ function registraBitacora($tipo_de_cargue, $fecha_ejecucion, $hora_ejecucion, $r
     
 
     $sql = "INSERT INTO bitacora (
-                tipo_de_cargue, fecha_ejecucion, hora_ejecucion, origen_del_proceso, reintento 
-            ) VALUES (
-                ?, ?, ?, ?
-            )";
+                tipo_de_cargue, 
+                fecha_ejecucion, 
+                hora_ejecucion, 
+                origen_del_proceso, 
+                reintento 
+            ) VALUES (?, ?, ?, ?, ?)";
 
     $stmt = $con->prepare($sql);
     if (!$stmt) {
