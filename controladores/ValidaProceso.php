@@ -64,8 +64,8 @@ function controlarEjecucion($tipoProceso, $minutosReintento, $numeroReintentos) 
             return;
         }
 
-        $reintento++;
         echo "❌ Error en proceso $tipoProceso. Reintento #$reintento...\n";
+        $reintento++;
 
         if ($reintento >= $numeroReintentos) {
             echo "⚠️ Se alcanzó el número máximo de reintentos. Terminando programa.\n";
