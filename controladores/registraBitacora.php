@@ -10,30 +10,22 @@ try {
     $fecha_ejecucion = $_POST['fecha_ejecucion'] ?? null;
     $hora_ejecucion = $_POST['hora_ejecucion'] ?? null;     
     $origen_del_proceso = $_POST['origen_del_proceso'] ?? null;
-    $cantidad_registros_enviados = $_POST['origen_del_proceso'] ?? null;
-    $tamaño_del_archivo = $_POST['origen_del_proceso'] ?? null;
-    $resultado_del_envio = $_POST['resultado_del_envio'] ?? null;
-    $descripcion_error = $_POST['descripcion_error'] ?? null;    
-    $parametros_usados = $_POST['parametros_usados'] ?? null;    
-    $satisfactorio = $_POST['satisfactorio'] ?? null;
-    $ruta_archivo = $_POST['ruta_archivo'] ?? null;
-    $archivo_borrado = $_POST['archivo_borrado'] ?? null;
     
     //Validación de los campos obligatorios
-    if (!$tipo_de_cargue || !$origen_del_proceso )  {
+    if (!$tipo_de_cargue || !$origen_del_proceso || !$fecha_ejecucion || !$hora_ejecucion)  {
         http_response_code(400);
         echo json_encode([
             'statusCode' => 400,
-            'mensaje' => 'Los campos Tipo de Cargue, Origen son  obligatorios.'
+            'mensaje' => 'Los campos Tipo de Cargue, Origen, fecha y hora de ejecución son obligatorios.'
         ]);
         exit;
     }
     
     $con->begin_transaction();
 
-    $stmt1 = $con->prepare("INSERT INTO bitacora (tipo_de_cargue, fecha_ejecucion, hora_ejecucion, origen_del_proceso, cantidad_registros_enviados, tamaño_del_archivo, resultado_del_envio, descripcion_error, parametros_usados, fecha_hora_de_inicio, fecha_hora_de_fin, satisfactorio, ruta_archivo, archivo_borrado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(),NOW(), ?, ?, ?)");
+    $stmt1 = $con->prepare("INSERT INTO bitacora (tipo_de_cargue, fecha_ejecucion, hora_ejecucion, origen_del_proceso) VALUES(?, ?, ?, ?)");
 
-    $stmt1->bind_param("ssssissssisi", $tipo_de_cargue, $fecha_ejecucion, $hora_ejecucion, $origen_del_proceso, $cantidad_registros_enviados, $tamaño_del_archivo, $resultado_del_envio, $descripcion_error, $parametros_usados, $satisfactorio, $ruta_archivo, $archivo_borrado); 
+    $stmt1->bind_param("ssss", $tipo_de_cargue, $fecha_ejecucion, $hora_ejecucion, $origen_del_proceso, ); 
     $stmt1->execute();
 
     $id_bitacora = $con->insert_id;

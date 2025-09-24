@@ -6,6 +6,7 @@ require_once 'controladores/bootstrap.php';
 use XBase\TableReader;
 
 try {
+
     // Abrir la tabla (ajusta la codificación si es necesario)
     $tabla = new TableReader(DBF_PATH, [
         'encoding' => 'CP1252'

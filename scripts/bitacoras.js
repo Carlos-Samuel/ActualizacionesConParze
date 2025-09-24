@@ -44,6 +44,7 @@ function cargarTabla(datosFiltro) {
             { data: 'fecha_ejecucion',          render: $.fn.dataTable.render.text() },
             { data: 'hora_ejecucion',           render: $.fn.dataTable.render.text() },
             { data: 'origen_del_proceso',       render: $.fn.dataTable.render.text() },
+            { data: 'reintento',                 render: $.fn.dataTable.render.text() },
             { data: 'cantidad_registros_enviados', render: $.fn.dataTable.render.text() },
             { data: 'tamaño_del_archivo',       render: $.fn.dataTable.render.text() },
             { data: 'resultado_del_envio',      render: $.fn.dataTable.render.text() },

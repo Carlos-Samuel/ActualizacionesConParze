@@ -29,6 +29,7 @@ require_once 'ConnectionParametrizacion.php';
                 fecha_ejecucion, 
                 hora_ejecucion, 
                 origen_del_proceso, 
+                reintento,
                 cantidad_registros_enviados, 
                 tamaño_del_archivo, 
                 resultado_del_envio, 
