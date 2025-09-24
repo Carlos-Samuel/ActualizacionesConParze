@@ -1,87 +1,85 @@
 <?php
-// Parámetros configurables
-$horasReporte = 3;
-$minutosReintento = 15;
+date_default_timezone_set('America/Mexico_City');
+require_once 'validaBitacora.php';
+require_once 'functions/generacionReporte.php';
 
-// Ruta del archivo de estado
-$registroPath = __DIR__ . '/estado_ejecucion.json';
+$code_horaDiaFull = 'HORA_CARGUE_FULL';
+$code_cadaHoras = 'FRECUENCIA_CARGUE_HORAS';
+$code_numeroReintentos = 'REINTENTOS_API';
+$code_minutosReintento = 'TIEMPO_ENTRE_REINTENTOS';
 
-// Fecha y hora actual
-$ahora = new DateTime();
-$fechaActual = $ahora->format('Y-m-d');
-$horaActual = (int)$ahora->format('G'); 
-$horaActualFormateada = $ahora->format('H') . ':00:00'; // Ejemplo: "03:00:00" 
-$claveActual = $ahora->format('Y-m-d-G'); // Ejemplo: "2025-09-19-03"
 
-// Verificar si es hora válida (múltiplo de $horasReporte)
-if ($horaActual % $horasReporte !== 0) {
-    echo "⏱️ Hora no válida ({$horaActual}:00). No se ejecuta el proceso.\n";
-    exit;
+// 1. Obtener fecha y hora del sistema
+$fechaActual = date('Y-m-d');
+$horaActual = date('H') . ':00:00'; // Solo la hora, sin minutos ni segundos
+
+
+// 2. Constantes de configuración
+$horaDiaFull       = obtenerParametro($code_horaDiaFull);        // Ejemplo: proceso FULL a las 3 AM
+$cadaHoras         = obtenerParametro($code_cadaHoras);          // Cada cuántas horas se corre el DELTA
+$minutosReintento  = obtenerParametro($code_minutosReintento);   // Minutos entre reintentos
+$numeroReintentos  = obtenerParametro($code_numeroReintentos);   // Máximo de reintentos
+$reintentos        = 0;          // Contador de reintentos
+echo $horaDiaFull ;
+
+function validaBitacora($fechaActual, $horaActual, $tipoDeCargue) {
+    // Aquí iría la lógica para validar la bitácora
+    return obtenerBitacora($fechaActual, $horaActual, $tipoDeCargue);
+
+}   
+// 3. Determinar si se debe correr FULL o DELTA
+function debeEjecutarFull($horaActual, $horaDiaFull) {
+    return $horaActual === $horaDiaFull;
 }
 
-// Cargar estado previo
-$estado = [];
-if (file_exists($registroPath)) {
-    $estado = json_decode(file_get_contents($registroPath), true);
+function debeEjecutarDelta($horaActual, $horaDiaFull, $cadaHoras) {
+    $horaActualInt   = (int)substr($horaActual, 0, 2);
+    $horaFullInt     = (int)substr($horaDiaFull, 0, 2);
+    $diferenciaHoras = $horaActualInt - $horaFullInt;
 
-    // Limpieza automática si el archivo contiene fechas anteriores
-    $primerClave = array_key_first($estado);
-    if ($primerClave && strpos($primerClave, $fechaActual) !== 0) {
-        echo "📅 Cambio de día detectado. Reiniciando archivo de estado...\n";
-        $estado = [];
-        file_put_contents($registroPath, json_encode($estado));
-    }
+    return $diferenciaHoras > 0 && ($diferenciaHoras % $cadaHoras === 0);
 }
 
-// Estado actual para esta hora
-$registro = $estado[$claveActual] ?? ['estado' => 'no_ejecutado', 'timestamp' => null];
-$estadoHora = $registro['estado'];
-$timestamp = $registro['timestamp'] ? new DateTime($registro['timestamp']) : null;
-
-// Decisión según estado
-if ($estadoHora === 'completado') {
-    echo "✅ Proceso ya completado a las {$horaActual}:00. No se repite.\n";
-    exit;
+// 4. Simulación de ejecución del proceso
+function ejecutarProceso($mode, $id) {
+    // echo "Ejecutando proceso $tipo...\n";
+    
+    return generarReporteInventario($id, $mode);
 }
 
-if ($estadoHora === 'en_progreso' && $timestamp) {
-    $diferencia = $timestamp->diff($ahora);
-    $minutosPasados = ($diferencia->h * 60) + $diferencia->i;
+// 5. Control de ejecución y reintentos
+function controlarEjecucion($tipoProceso, $minutosReintento, $numeroReintentos) {
+    global $reintentos;
 
-    if ($minutosPasados < $minutosReintento) {
-        echo "⏳ Proceso aún en progreso (iniciado hace {$minutosPasados} min). No se repite.\n";
-        exit;
-    } else {
-        echo "⚠️ Proceso en progreso pero excedió {$minutosReintento} minutos. Reintentando...\n";
-    }
-} elseif ($estadoHora === 'error') {
-    echo "🔁 Reintentando proceso tras error anterior a las {$horaActual}:00...\n";
+    
+    do {
+        $id_bitacora = registrarBitacora($tipoProceso, $fechaActual, $horaActual, $reintento );
+        $exito = ejecutarProceso($tipoProceso,$id_bitacora);
+
+        if ($exito) {
+            // "✅ Proceso $tipoProceso terminado correctamente.\n";
+            return;
+        }
+
+        $reintentos++;
+        // "❌ Error en proceso $tipoProceso. Reintento #$reintentos...\n";
+
+        if ($reintentos >= $numeroReintentos) {
+            // "⚠️ Se alcanzó el número máximo de reintentos. Terminando programa.\n";
+            return;
+        }
+
+        sleep($minutosReintento * 60); // Esperar antes del siguiente intento
+
+    } while (!$exito);
+}
+
+// 6. Decisión final
+if (debeEjecutarFull($horaActual, $horaDiaFull)) {
+    controlarEjecucion('FULL', $minutosReintento, $numeroReintentos);
+} elseif (debeEjecutarDelta($horaActual, $horaDiaFull, $cadaHoras)) {
+    controlarEjecucion('DELTA', $minutosReintento, $numeroReintentos);
 } else {
-    echo "🚀 Ejecutando proceso por primera vez a las {$horaActual}:00...\n";
-}
-
-// Registrar como "en_progreso"
-$estado[$claveActual] = [
-    'estado' => 'en_progreso',
-    'timestamp' => $ahora->format(DateTime::ATOM)
-];
-file_put_contents($registroPath, json_encode($estado));
-
-// 🔁 Aquí va tu lógica principal
-$exito = ejecutarProceso(); // Simula ejecución
-
-// Actualizar estado según resultado
-$estado[$claveActual]['estado'] = $exito ? 'completado' : 'error';
-file_put_contents($registroPath, json_encode($estado));
-
-echo $exito
-    ? "✅ Proceso completado exitosamente.\n"
-    : "❌ Proceso falló. Se volverá a intentar en el próximo ciclo.\n";
-
-// Simulación del proceso (reemplaza con tu lógica real)
-function ejecutarProceso() {
-    // Simula éxito o fallo aleatorio
-    // gestorGerador
-    return rand(0, 1) === 1;
+    //echo "⏹️ No es momento de ejecutar ningún proceso. Terminando.\n";
 }
 ?>

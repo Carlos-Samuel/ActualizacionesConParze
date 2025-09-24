@@ -1,9 +1,12 @@
+DROP TABLE IF EXISTS bitacora;
+
 CREATE TABLE bitacora (
 		id_bitacora INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador unico de la bitacora',
 		tipo_de_cargue ENUM('FULL', 'DELTA') COMMENT 'tipo de cargue del envio realizado',
 		fecha_ejecucion DATE COMMENT 'Fecha en que se realiza el proceso',
 		hora_ejecucion TIME COMMENT 'Hora en que se realiza el proceso',
 		origen_del_proceso ENUM('Manual', 'Automatico', 'Reenvio') COMMENT'Origen del proceso de envio',
+		reintento INT DEFAULT 0 COMMENT 'Numero de reintento en caso de fallo',
 		cantidad_registros_enviados INTEGER COMMENT 'Cantidad de registros que se enviaron en el proceso',
 		tamaño_del_archivo VARCHAR(255) COMMENT 'Tamaño del archivo enviado en el proceso', 
         resultado_del_envio ENUM('Exitoso', 'Fallido') COMMENT 'resultado del envio exitoso o fallido',

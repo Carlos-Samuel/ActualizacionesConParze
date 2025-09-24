@@ -305,7 +305,7 @@ function generarCsv(string $mode, array $rows, array $diffs, int &$noReg, string
 }
 
 
-function generarReporteInventario(int $id_bitacora, string $mode): void {
+function generarReporteInventario(int $id_bitacora, string $mode): bool {
 
     $conParam = ConnectionParametrizacion::getInstance()->getConnection();
     $conParam->set_charset('utf8mb4');
@@ -543,9 +543,9 @@ function generarReporteInventario(int $id_bitacora, string $mode): void {
             $up->execute();
             $up->close();
         }
-
+        return false;
     }
 
     registrar_paso($conParam, $id_bitacora, 'Termina');
-
+    return true;
 }

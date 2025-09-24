@@ -43,6 +43,7 @@
                                     <th>Fecha</th>
                                     <th>Hora</th>
                                     <th>Origen</th>
+                                    <th>Reintento</th>
                                     <th>No.Reg.</th>
                                     <th>Tamaño</th>
                                     <th>Resultado</th>

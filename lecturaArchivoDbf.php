@@ -5,8 +5,8 @@ use XBase\TableReader;
 
 try {
     // Ruta al archivo DBF
-    $ruta = "C:\\Users\\csamu\\OneDrive\\Escritorio\\Parze\\PRODEXIS.DBF";
-
+    $ruta = "C:\\Users\\rapar\\OneDrive\\Emprendimiento\\PROYECTOS\\ActualizacioninventarioAPI\\Parze\\PRODEXIS.DBF";
+    
     // Abrir la tabla (ajusta la codificación si es necesario)
     $tabla = new TableReader($ruta, [
         'encoding' => 'CP1252'
