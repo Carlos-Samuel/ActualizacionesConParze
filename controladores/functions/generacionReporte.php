@@ -283,7 +283,7 @@ function generarCsv(string $mode, array $rows, array $diffs, int &$noReg, string
         $rows = $diffs;
     }
 
-    fputcsv($fp, ['code','qty','costo','descuento'], CSV_DELIM);
+    fputcsv($fp, ['code','qty','costo','discount'], CSV_DELIM);
     foreach ($rows as $code => $r) {
         if (!($r['costo'] === null || $r['costo'] === '' || !is_finite($r['costo']) || $r['costo'] == 0)) {
             fputcsv($fp, [
@@ -441,7 +441,19 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
         registrar_paso($conParam, $id_bitacora, 'Termina generar csv con mode ' . $mode . ': ' . $csvFile . 
             " (total registros: " . count($current) . ", diffs: " . count($diffs) . ")");
         
+        $up = $conParam->prepare(
+            "UPDATE bitacora
+            SET cantidad_registros_enviados = ?,
+                tamaño_del_archivo          = ?,
+                ruta_archivo                = ?
+            WHERE id_bitacora = ?"
+        );
 
+        if ($up) {
+            $up->bind_param('issi', $noReg, $tamArchivo, $rutaArchivo, $id_bitacora);
+            $up->execute();
+            $up->close();
+        }
 
         // 8) Envío a API externa (cURL)
         registrar_paso($conParam, $id_bitacora, 'Inicia envío a API externa: ' . $pUrl);
@@ -514,16 +526,13 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
 
         $up = $conParam->prepare(
             "UPDATE bitacora
-            SET cantidad_registros_enviados = ?,
-                tamaño_del_archivo          = ?,
-                ruta_archivo                = ?,
                 resultado_del_envio         = 'Exitoso',
                 fecha_hora_de_fin           = CURRENT_TIMESTAMP
             WHERE id_bitacora = ?"
         );
 
         if ($up) {
-            $up->bind_param('issi', $noReg, $tamArchivo, $rutaArchivo, $id_bitacora);
+            $up->bind_param('i', $id_bitacora);
             $up->execute();
             $up->close();
         }
