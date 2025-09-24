@@ -1,7 +1,10 @@
 <?php
-date_default_timezone_set('America/Mexico_City');
+set_time_limit(0); // Evitar límite de tiempo de ejecución
 require_once 'validaBitacora.php';
 require_once 'functions/generacionReporte.php';
+require_once 'bootstrap.php';
+
+date_default_timezone_set(env_required('TIME_ZONE')); // Establecer zona horaria desde .env
 
 $code_horaDiaFull       = 'HORA_CARGUE_FULL';
 $code_cadaHoras         = 'FRECUENCIA_CARGUE_HORAS';
@@ -67,11 +70,12 @@ function controlarEjecucion($tipoProceso, $minutosReintento, $numeroReintentos) 
         echo "❌ Error en proceso $tipoProceso. Reintento #$reintento...\n";
         $reintento++;
 
-        if ($reintento >= $numeroReintentos) {
+        if ($reintento > $numeroReintentos) {
             echo "⚠️ Se alcanzó el número máximo de reintentos. Terminando programa.\n";
             return;
         }
         echo "⏳ Esperando $minutosReintento minutos antes del siguiente intento...\n";
+        
         sleep($minutosReintento * 60); // Esperar antes del siguiente intento
 
     } while (!$exito);
