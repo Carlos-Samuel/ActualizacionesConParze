@@ -24,6 +24,7 @@ function cargarTabla(datosFiltro) {
         scrollCollapse: true,
         fixedHeader: true,
         deferRender: true,
+        order: [[0, 'desc']],
         ajax: {
             url: 'controladores/listarBitacoras.php',
             type: 'POST',
