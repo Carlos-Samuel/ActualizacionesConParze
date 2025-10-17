@@ -24,7 +24,14 @@ $minutosReintento  = obtenerParametro($code_minutosReintento);   // Minutos entr
 $numeroReintentos  = obtenerParametro($code_numeroReintentos);   // Máximo de reintentos
 $reintento        = 0;          // Contador de reintentos
 
-echo $fechaActual, $horaActual, $horaDiaFull ;
+//validar si encontró parametros
+
+echo $fechaActual, $horaActual, $horaDiaFull, $cadaHoras, $minutosReintento, $numeroReintentos;
+
+IF ($horaDiaFull == -1 || $cadaHoras == -1 || $minutosReintento == -1 || $numeroReintentos == -1){
+    echo "❌ Error: No se pudieron obtener todos los parámetros necesarios. Verifique la configuración.\n";
+    exit;
+}
 
 function existeBitacora($fechaActual, $horaActual):bool {
     // Aquí iría la lógica para validar la bitácora
