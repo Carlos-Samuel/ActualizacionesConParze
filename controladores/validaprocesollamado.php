@@ -1,5 +1,5 @@
 <?php
-set_time_limit(0); // Evitar límite de tiempo de ejecución
+set_time_limit(0); // Evitar límite de tiempo de ejecución.
 require_once 'validaBitacora.php';
 require_once 'functions/generacionReporte.php';
 require_once 'bootstrap.php';
