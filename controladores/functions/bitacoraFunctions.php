@@ -8,7 +8,7 @@ function conn(): mysqli {
 }
 
 function crear_bitacora(mysqli $cx, $tipo_de_cargue, $origen): int {
-    $resultado     = 'Iniciado el proceso';
+    $resultado     = 'Exitoso';
     $satisfactorio = 0;
 
     $sql = "INSERT INTO bitacora (

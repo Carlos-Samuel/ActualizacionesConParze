@@ -47,8 +47,7 @@ try {
             FROM tbl_precio tp
             INNER JOIN tbl_empresa e ON e.emprid = tp.empid
             WHERE tp.empid IS NOT NULL
-              AND e.emprcod IN ($placeholders)
-            ORDER BY e.emprnom ASC, tp.tabprenom ASC";
+              AND e.emprcod IN ($placeholders)";
 
     $stmt = $con->prepare($sql);
 
