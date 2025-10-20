@@ -480,7 +480,7 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
 
         curl_setopt_array($ch, [
             CURLOPT_URL            => $pUrl,
-            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $postFields,
             CURLOPT_HTTPHEADER     => [
                 'Key: ' . $pApikey,
