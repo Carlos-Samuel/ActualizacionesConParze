@@ -283,7 +283,7 @@ function generarCsv(string $mode, array $rows, array $diffs, int &$noReg, string
         $rows = $diffs;
     }
 
-    fputcsv($fp, ['code','qty','costo','discount'], CSV_DELIM);
+    fputcsv($fp, ['ID_INTERNO','CANTIDAD','PRECIO_VENTA','PORCENTAJE_DESCUENTO'], CSV_DELIM);
     foreach ($rows as $code => $r) {
         if (!($r['costo'] === null || $r['costo'] === '' || !is_finite($r['costo']) || $r['costo'] == 0)) {
             fputcsv($fp, [
@@ -330,9 +330,8 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
 
 
         if (!$pEmp) throw new RuntimeException("No hay parámetro vigente para EMPRESA");
-        if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
-        if (!$pPre) throw new RuntimeException("No hay parámetro vigente para PRECIOS");
         //if (!$pSub) throw new RuntimeException("No hay parámetro vigente para SUBGRUPOS_CON_DESCUENTO");
+        if (!$pPre) throw new RuntimeException("No hay parámetro vigente para PRECIOS");
         if (!$pUrl) throw new RuntimeException("No hay parámetro vigente para URL");
         if (!$pApikey) throw new RuntimeException("No hay parámetro vigente para APIKEY");
 
@@ -342,7 +341,15 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
         $pPre = (string)$pPre['valor'];
         $pUrl = (string)$pUrl['valor'];
         $pApikey = (string)$pApikey['valor'];
-        $subDescMap = parse_subgrupos_descuento((string)$pSub['valor']);
+
+        $subDescRaw = '';
+        if (is_array($pSub) && array_key_exists('valor', $pSub)) {
+            $subDescRaw = (string)$pSub['valor'];
+        }
+
+        $subDescMap = trim($subDescRaw) === '' ? [] : parse_subgrupos_descuento($subDescRaw);
+
+        //$subDescMap = parse_subgrupos_descuento((string)$pSub['valor']);
 
         registrar_paso($conParam, $id_bitacora, 'Parametros obtenidos e inicia lectura DBF');
 
