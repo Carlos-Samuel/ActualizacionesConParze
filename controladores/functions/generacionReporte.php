@@ -283,7 +283,7 @@ function generarCsv(string $mode, array $rows, array $diffs, int &$noReg, string
         $rows = $diffs;
     }
 
-    fputcsv($fp, ['ID_INTERNO','CANTIDAD','PRECIO_VENTA','PORCENTAJE_DESCUENTO'], CSV_DELIM);
+    fputcsv($fp, ['ID_INTERNO','CANTIDAD','PRECIO_VENTA','DESCUENTO_POR_PORCENTAJE'], CSV_DELIM);
     foreach ($rows as $code => $r) {
         if (!($r['costo'] === null || $r['costo'] === '' || !is_finite($r['costo']) || $r['costo'] == 0)) {
             fputcsv($fp, [
