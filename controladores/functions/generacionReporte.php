@@ -14,21 +14,6 @@ mysqli_report(MYSQLI_REPORT_OFF);
    HELPERS
    ======================= */
 
-function getValorVigenteParametro(mysqli $con, string $codigo): ?array {
-    $sql = "SELECT valor
-            FROM parametros
-            WHERE codigo = ? AND vigente = TRUE
-            ORDER BY fecha_modificacion DESC
-            LIMIT 1";
-    $st = $con->prepare($sql);
-    if (!$st) throw new RuntimeException("Error prepare param: " . $con->error);
-    $st->bind_param('s', $codigo);
-    $st->execute();
-    $res = $st->get_result();
-    $row = $res->fetch_assoc() ?: null;
-    $st->close();
-    return $row;
-}
 
 function parse_subgrupos_descuento(string $raw): array {
     $map = [];
@@ -556,7 +541,8 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
         );
 
         if ($up) {
-            $up->bind_param('si', $e->getMessage(), $id_bitacora);
+            $msg = $e->getMessage();
+            $up->bind_param('si', $msg, $id_bitacora);
             $up->execute();
             $up->close();
         }
