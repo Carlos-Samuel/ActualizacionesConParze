@@ -3,8 +3,6 @@
 
 const ENDPOINT_GET  = 'controladores/obtenerParametro.php';
 const ENDPOINT_SAVE = 'controladores/guardarParametro.php';
-const PARAM_EMPRESAS = 'EMPRESA';
-const ENDPOINT_LISTAR_EMPRESAS = 'controladores/listarEmpresas.php';
 const PARAM_GRUPOS = 'GRUPOS_SELECCIONADOS';
 //const ENDPOINT_LISTAR_GRUPOS = 'controladores/listarGrupos.php';
 const PARAM_SUBGRUPOS = 'SUBGRUPOS_CON_DESCUENTO';
@@ -13,32 +11,16 @@ const ENDPOINT_LISTAR_SUBGRUPOS = 'controladores/listarSubGrupos.php';
 // Definición de parámetros y reglas  SE QUITAN TODOS 
 const PARAMS = [];
 
-let empresasCache = [];
 let seleccionInicialNorm = '';
-let $tablaEmpresasBody = null;
-//let bodegasCache = []; 
-//let bodegasSeleccionInicialNorm = '';
-//let $tablaBodegasBody = null;
 let gruposCache = []; 
-let gruposSeleccionInicialNorm = '';
 let subGruposSeleccionInicialNorm = '';
-let $tablaGruposBody = null;
-let subGruposCache = []; 
-let SubGruposConDescuentoInicialNorm = '';
 let $tablaSubGruposBody = null;
 
 $(document).ready(function () {
     PARAMS.forEach(setupParam);
-   // $tablaGruposBody = $('#tabla-grupos tbody');
     $tablaSubGruposBody = $('#tabla-subgrupos tbody');
 
-    //cargarGruposYSeleccion();
     cargarSubGruposYSeleccion();
-
-    // Guardar
-  // $('#btn-guardar-grupos').on('click', function () {
-  //      guardarGruposSeleccionadas();
-  //  });
 
     $('#btn-guardar-descuentos').on('click', function () {
         guardarSubGruposSeleccionadas();
@@ -318,18 +300,21 @@ function cargarSubGruposYSeleccion() {
 function renderTablaSubGrupos(subgrupos, seleccionSetS) {
   $tablaSubGruposBody.empty();
 
-  // Ya vienen ordenadas por empresa desde el backend, pero si quieres:
-  // bodegas.sort((a,b)=> a.emprnom.localeCompare(b.emprnom) || a.bodnom.localeCompare(b.bodnom));
-
-   console.log('Renderizando tabla de subgrupos:', subgrupos);
-   console.log('Renderizando tabla de selección:', seleccionSetS);
   subgrupos.forEach(s => {
-    let descuento = 0 ;
-    const subgrupo = String(s.subid);
+    let descuento   = 0;
+    let fechaInicio = '';
+    let fechaFin    = '';
+
+    const subgrupo  = String(s.subid);
     const resultado = Array.from(seleccionSetS).find(item => item.startsWith(subgrupo + ":"));
 
-    if (resultado){
-        descuento = resultado.split(':')[1];
+    if (resultado) {
+      const partes = resultado.split(':');
+      // Formato viejo: subid:descuento
+      // Formato nuevo: subid:descuento:fechaInicio:fechaFin
+      descuento   = partes[1] ?? 0;
+      fechaInicio = partes[2] ?? '';
+      fechaFin    = partes[3] ?? '';
     }
 
     const row = $(`
@@ -338,17 +323,24 @@ function renderTablaSubGrupos(subgrupos, seleccionSetS) {
         <td class="text-monospace">${escapeHtml(String(s.grpnom))}</td>
         <td>${escapeHtml(String(s.subnom))}</td>
         <td>
-          <input type="number" class="form-control form-control-sm sub-des" 
-             min="0" max="100" placeholder="0–100" value="${escapeHtml(String(descuento))}">  
+          <input type="number" class="form-control form-control-sm sub-des"
+                 min="0" max="100" placeholder="0–100"
+                 value="${escapeHtml(String(descuento))}">
+        </td>
+        <td>
+          <input type="date" class="form-control form-control-sm sub-fi"
+                 value="${escapeHtml(String(fechaInicio))}">
+        </td>
+        <td>
+          <input type="date" class="form-control form-control-sm sub-ff"
+                 value="${escapeHtml(String(fechaFin))}">
         </td>
       </tr>
     `);
-    //row.find('input.sub-des').val(selected ? 100 : 0);
-    row.find('input.sub-des').val()
-    
-    row.find('input.sub-des').on('change', function () {
+
+    // Cuando cambie cualquier campo, verificamos si hubo cambios
+    row.find('input.sub-des, input.sub-fi, input.sub-ff').on('change', function () {
       const norm = normalizeSeleccion(getSeleccionSubGruposActualComoSet());
-      
       $('#btn-guardar-descuentos').prop('disabled', norm === subGruposSeleccionInicialNorm);
     });
 
@@ -356,22 +348,60 @@ function renderTablaSubGrupos(subgrupos, seleccionSetS) {
   });
 }
 
+
 function getSeleccionSubGruposActualComoSet() {
-   
   const set = new Set();
+
   $tablaSubGruposBody.find('tr').each(function () {
-    const cod = $(this).data('subid');
-    const val = $(this).find('input.sub-des').val();
-     
-    //aqui se debe cambiar la intruccion ser.add String(cod+':'String.valueOf(val)) RAPC  //`${cod}:${val}`
-    if ( val > 0 && val <= 100) set.add(`${cod}:${val}`);
+    const cod   = $(this).data('subid');
+    const val   = $(this).find('input.sub-des').val();
+    const fi    = $(this).find('input.sub-fi').val();
+    const ff    = $(this).find('input.sub-ff').val();
+
+    const numVal = parseFloat(val) || 0;
+
+    if (numVal > 0 && numVal <= 100) {
+      // Aunque luego validemos fechas, aquí las incluimos para que cuenten como cambio
+      set.add(`${cod}:${numVal}:${fi || ''}:${ff || ''}`);
+    }
   });
-   
+
   return set;
 }
 
+
 function guardarSubGruposSeleccionadas() {
-  const seleccionSetS = getSeleccionSubGruposActualComoSet();
+  const seleccionSetS = new Set();
+  let errorMsg = '';
+
+  $tablaSubGruposBody.find('tr').each(function () {
+    const cod   = $(this).data('subid');
+    const val   = $(this).find('input.sub-des').val();
+    const fi    = $(this).find('input.sub-fi').val();
+    const ff    = $(this).find('input.sub-ff').val();
+
+    const numVal = parseFloat(val) || 0;
+    const tieneFechas = (fi && fi.trim().length > 0) || (ff && ff.trim().length > 0);
+
+    if (numVal > 0 && numVal <= 100) {
+      // Descuento > 0 ⇒ ambas fechas obligatorias
+      if (!fi || !ff) {
+        errorMsg = 'Para todos los subgrupos con descuento mayor a 0 es obligatorio diligenciar la fecha de inicio y la fecha de fin.';
+        return false; // rompe el each
+      }
+      seleccionSetS.add(`${cod}:${numVal}:${fi}:${ff}`);
+    } else if (numVal === 0 && tieneFechas) {
+      // Opcional: si descuento 0 pero puso fechas, lo consideramos error
+      errorMsg = 'Si el descuento es 0, no debes diligenciar fechas de vigencia.';
+      return false;
+    }
+  });
+
+  if (errorMsg) {
+    error(errorMsg);
+    return;
+  }
+
   const valor = Array.from(seleccionSetS).sort().join(';');
 
   $.ajax({
@@ -380,23 +410,24 @@ function guardarSubGruposSeleccionadas() {
     dataType: 'json',
     data: {
       codigo: PARAM_SUBGRUPOS,
-      descripcion: 'Subgrupos con descuentos (subdes:descuento(0-99) separados por ;)',
+      descripcion: 'Subgrupos con descuentos (subid:descuento:fechaInicio:fechaFin separados por ;)',
       valor: valor
     }
   })
   .done(function (resp) {
     if (resp.statusCode === 200) {
-      ok('Descuentos de subGrupos guardadas correctamente.');
+      ok('Descuentos de subgrupos guardados correctamente.');
       subGruposSeleccionInicialNorm = normalizeSeleccion(seleccionSetS);
       $('#btn-guardar-descuentos').prop('disabled', true);
     } else {
-      error(resp.mensaje || 'No se pudo guardar los subrgrupos con descuento.');
+      error(resp.mensaje || 'No se pudo guardar los subgrupos con descuento.');
     }
   })
   .fail(function () {
-    error('Fallo al comunicarse con el servidor al guardar los subrgupos con descuento.');
+    error('Fallo al comunicarse con el servidor al guardar los subgrupos con descuento.');
   });
 }
+
 
 // Notificaciones
 function ok(msg)   { if (window.Swal) Swal.fire('Éxito',       msg, 'success'); else alert(msg); }

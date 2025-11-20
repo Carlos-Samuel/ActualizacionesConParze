@@ -39,7 +39,7 @@
               <span class="menu-title">Descuentos</span>
             </a>
           </li>
-
+          <!--
           <li class="menu-item">
             <a href="lecturaArchivoDbf.php">
               <span class="menu-icon">
@@ -48,7 +48,7 @@
               <span class="menu-title">Lectura Archivo Dbf</span>
             </a>
           </li>
-
+          -->
           <li class="menu-item">
             <a href="envioManual.php">
               <span class="menu-icon">

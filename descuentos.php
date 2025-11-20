@@ -17,16 +17,7 @@
             </div>
             <main class="content">
                 <div class="card p-4 shadow mt-1">
-                    <!-- URL -->
-                    <!-- Hora cargue diario FULL -->
-                    <!-- Frecuencia periódica en horas -->
-                    <!-- API Key -->
-                    <!-- Reintentos automáticos -->
-                    <!-- Grupos de productos seleccionadas (tabla con select Sí/No) -->
                     <div class="mb-2">
-                        
-                    <br>
-                    <!-- Sub Grupos seleccionados (tabla con select Sí/No) -->
                     <div class="mb-2">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <label class="form-label fw-semibold m-0">Sub Grupos disponibles</label>
@@ -34,17 +25,19 @@
 
                         <div class="table-responsive">
                             <table class="table table-sm table-striped align-middle" id="tabla-subgrupos">
-                            <thead class="table-light">
-                                <tr>
-                                <th style="width:280px;">Empresa</th>   
-                                <th style="width:320px;">Grupo</th>
-                                 <th>Subgrupo</th>
-                                <th style="width:160px;">Descuento (0-100)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:280px;">Empresa</th>   
+                                        <th style="width:320px;">Grupo</th>
+                                        <th>Subgrupo</th>
+                                        <th style="width:160px;">Descuento (0-100)</th>
+                                        <th style="width:160px;">Fecha inicio</th>
+                                        <th style="width:160px;">Fecha fin</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
                             </table>
+
                         </div>
 
                         <div class="text-end mt-2">

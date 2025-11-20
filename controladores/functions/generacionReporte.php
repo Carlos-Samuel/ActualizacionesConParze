@@ -16,31 +16,100 @@ mysqli_report(MYSQLI_REPORT_OFF);
 
 
 function parse_subgrupos_descuento(string $raw): array {
-    $map = [];
+    $map   = [];
+    $today = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d');
+
+    // 1) Intentar formato JSON primero (compatibilidad hacia atrás)
     $json = json_decode($raw, true);
     if (is_array($json)) {
         foreach ($json as $it) {
             if (!is_array($it)) continue;
-            $sid = $it['subId'] ?? $it['subgrupo'] ?? $it['SubId'] ?? null;
-            $pct = $it['descuento'] ?? $it['porcentaje'] ?? 0;
-            if ($sid !== null && $sid !== '') $map[(int)$sid] = (float)$pct;
+
+            $sid = $it['subId']      ?? $it['subgrupo'] ?? $it['SubId'] ?? null;
+            $pct = $it['descuento']  ?? $it['porcentaje'] ?? 0;
+
+            // Fechas opcionales por si algún día las incluyes también en JSON
+            $fi  = $it['fechaInicio'] ?? $it['fecha_inicio'] ?? null;
+            $ff  = $it['fechaFin']    ?? $it['fecha_fin']    ?? null;
+
+            if ($sid === null || $sid === '') {
+                continue;
+            }
+
+            $pctF = (float)$pct;
+
+            // Si hay fechas, filtramos por vigencia; si no, se comporta como antes (sin filtro)
+            if ($fi && $ff) {
+                $fi = substr(trim($fi), 0, 10);
+                $ff = substr(trim($ff), 0, 10);
+                if ($fi > $today || $ff < $today) {
+                    continue;
+                }
+            }
+
+            $map[(int)$sid] = $pctF;
         }
-        if (!empty($map)) return $map;
+
+        if (!empty($map)) {
+            return $map;
+        }
+        // si no hubo nada útil, seguimos con los otros formatos
     }
-    $pairs = preg_split('/[,\;]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+
+    // 2) Formatos separados por coma/; con ":" (subid:descuento o subid:descuento:fi:ff)
+    $pairs    = preg_split('/[,\;]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
     $hasPairs = false;
+
     foreach ($pairs as $p) {
-        if (strpos($p, ':') !== false) {
-            [$sid, $pct] = array_map('trim', explode(':', $p, 2));
-            if ($sid !== '') { $map[(int)$sid] = (float)str_replace('%','',$pct); $hasPairs = true; }
+        if (strpos($p, ':') === false) {
+            continue;
+        }
+
+        $parts = array_map('trim', explode(':', $p));
+        // subid:descuento[:fechaInicio[:fechaFin]]
+        $sid = $parts[0] ?? '';
+        $pct = $parts[1] ?? '';
+        $fi  = $parts[2] ?? null;
+        $ff  = $parts[3] ?? null;
+
+        if ($sid === '') {
+            continue;
+        }
+
+        $pctF = (float) str_replace('%', '', $pct);
+
+        // Si tiene fechas → solo aplica si hoy está dentro del rango
+        if ($fi && $ff) {
+            $fi = substr(trim($fi), 0, 10);
+            $ff = substr(trim($ff), 0, 10);
+
+            // si el formato es YYYY-MM-DD, comparación de strings funciona
+            if ($fi <= $today && $today <= $ff) {
+                $map[(int)$sid] = $pctF;
+                $hasPairs = true;
+            } else {
+                // tiene fechas pero no aplican hoy ⇒ no se agrega
+                continue;
+            }
+        } else {
+            // Sin fechas ⇒ se mantiene el comportamiento anterior (no se filtra)
+            $map[(int)$sid] = $pctF;
+            $hasPairs = true;
         }
     }
-    if ($hasPairs) return $map;
+
+    if ($hasPairs) {
+        return $map;
+    }
+
+    // 3) Último fallback: listado simple de ids (sin descuentos, sin fechas)
     foreach (preg_split('/[,\;\|\s]+/', $raw, -1, PREG_SPLIT_NO_EMPTY) as $sid) {
         $map[(int)$sid] = 0.0;
     }
+
     return $map;
 }
+
 
 function norm_code(string $s): string {
     // Reemplaza NBSP por espacio normal y trimea
@@ -334,8 +403,6 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
 
         $subDescMap = trim($subDescRaw) === '' ? [] : parse_subgrupos_descuento($subDescRaw);
 
-        //$subDescMap = parse_subgrupos_descuento((string)$pSub['valor']);
-
         registrar_paso($conParam, $id_bitacora, 'Parametros obtenidos e inicia lectura DBF');
 
         // 2) DBF
@@ -460,6 +527,7 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
         }
 
         // Archivo a enviar como multipart/form-data
+        
         $cfile = new CURLFile(EXPORT_DIR . '/' . $rutaArchivo, 'text/csv', basename(EXPORT_DIR . '/' . $rutaArchivo));
         $postFields = ['file_inventory' => $cfile];
 
@@ -501,7 +569,7 @@ function generarReporteInventario(int $id_bitacora, string $mode): bool {
         if (!array_key_exists('message', $json)) {
             throw new RuntimeException("JSON sin 'message'. Body: " . mb_strimwidth((string)$raw, 0, 500, '...'));
         }
-
+        
         $expected = "El inventario de Maxcampo Agroveterinaria se ha enviado exitosamente.";
         $message  = (string)$json['message'];
 
